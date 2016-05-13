@@ -1,5 +1,7 @@
-#!/usr/bin/python
-
+"""
+Reads lesgo's binary data output into a numpy array
+Author: Joel Bretheim
+"""
 import os
 import struct
 import numpy as np

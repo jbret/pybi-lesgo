@@ -1,6 +1,6 @@
 """
 Python plotting for lesgo binary data
-Author: Joel Bretheim, jbretheim@gmail.com
+Author: Joel Bretheim
 """
 import numpy as np
 import matplotlib.pyplot as plt

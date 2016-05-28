@@ -1,13 +1,15 @@
 """
-Python plotting for lesgo binary data
+Python plotting for lesgo binary data.
 Author: Joel Bretheim
 """
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import re
 from subprocess import check_output
 from read_lesgo_bin import readmyfile
-from os import getcwd
+from os import getcwd, system
 
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
@@ -39,148 +41,23 @@ kx_vec=[0]
 vel_avg_plot = 1;
 rs_plot      = 1;
 tau_plot     = 1;
-snap_plot    = 0;  thisSnap = 5000;
+snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
 fourier      = 1;
-
-# neglect top point in each proc except last proc
-# remember, 0:8 does not grab the point at index 8, just indices 0-7
-vel  = np.zeros((3,nz,ny,nx))
-# on w-grid
-if vel_avg_plot:
-    for i in range(0, nproc):
-        fileName = './output/binary_vel_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        vel_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        vel[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
-
-rs = np.zeros((6,nz,ny,nx))
-if rs_plot or tau_plot:
-    for i in range(0, nproc):
-        fileName = './output/binary_rs.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        rs_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        rs[:,a:b,:,:] = rs_i[:,0:nz_,:,:]
-
-tau = np.zeros((6,nz,ny,nx))
-if tau_plot:
-    for i in range(0, nproc):
-        fileName = './output/binary_tau_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        tau_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
-
-snap  = np.zeros((3,nz,ny,nx))
-# on uv-grid
-if snap_plot:
-    for i in range(0, nproc):
-        fileName = './output/binary_vel.'+str(thisSnap)+'.dat.c'+str(i)
-        filecontents = readmyfile(fileName)
-        snap_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        snap[:,a:b,:,:] = snap_i[:,0:nz_,:,:]
 
 z = np.linspace(0, Lz, nz, endpoint=True)
 y = np.linspace(0, Ly, ny, endpoint=False)
 x = np.linspace(0, Lx, nx, endpoint=False)
 
-if fourier:
-    # complex-valued arrays corresponding to the real-valued arrays
-    velc  = np.zeros((3,nz,ny,nx), dtype=complex)
-    rsc   = np.zeros((6,nz,ny,nx), dtype=complex)
-    tauc  = np.zeros((6,nz,ny,nx), dtype=complex)
-    snapc = np.zeros((3,nz,ny,nx), dtype=complex)
-
-    # re-arrange real-valued arrays into complex-valued arrays
-    for i in range(0,nx/2):
-        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
-        velc[:,:,:,i]  =  vel[:,:,:,a] + 1j *  vel[:,:,:,b]
-        rsc[:,:,:,i]   =   rs[:,:,:,a] + 1j *   rs[:,:,:,b]
-        snapc[:,:,:,i] = snap[:,:,:,a] + 1j * snap[:,:,:,b]
-        tauc[:,:,:,i]  =  tau[:,:,:,a] + 1j *  tau[:,:,:,b]
-        if i > 0:
-            velc[:,:,:,e] = np.conj(velc[:,:,:,i])
-            rsc[:,:,:,e] = np.conj(rsc[:,:,:,i])
-
-    for v in range(0,3):
-        for i in range(0,nx/2):
-            for k in range(0,nz):
-                snapc[v,k,:,i] = np.fft.ifft(snapc[v,k,:,i]) * ny
-                tauc[v,k,:,i] = np.fft.ifft(tauc[v,k,:,i]) * ny
-                tauc[v+3,k,:,i] = np.fft.ifft(tauc[v+3,k,:,i]) * ny
-
-    for i in range(1,nx/2):
-        e = nx-i;  #print 'i,e : ', i,e
-        snapc[:,:,:,e] = np.conj(snapc[:,:,:,i])
-        tauc[:,:,:,e] = np.conj(tauc[:,:,:,i])
-
-    velci = np.zeros((3,nz,ny,nx),dtype=complex)
-    rsci = np.zeros((6,nz,ny,nx),dtype=complex)
-    snapci = np.zeros((3,nz,ny,nx),dtype=complex)
-    tauci = np.zeros((6,nz,ny,nx),dtype=complex)
-    for v in range(0,3):
-        for k in range(0,nz):
-            for j in range(0,ny):
-                velci[v,k,j,:] = np.fft.ifft(velc[v,k,j,:]) * nx
-                rsci[v,k,j,:] = np.fft.ifft(rsc[v,k,j,:]) * nx
-                rsci[v+3,k,j,:] = np.fft.ifft(rsc[v+3,k,j,:]) * nx
-                snapci[v,k,j,:] = np.fft.ifft(snapc[v,k,j,:]) * nx
-                tauci[v,k,j,:] = np.fft.ifft(tauc[v,k,j,:]) * nx
-                tauci[v+3,k,j,:] = np.fft.ifft(tauc[v+3,k,j,:]) * nx
-
-    # clean up and rename
-    vel = np.real(velci)
-    rs = np.real(rsci)
-    snap = np.real(snapci)
-    tau = np.real(tauci)
-
-else:
-    print ">>>> Not in Fourier mode"
-
-# rename data
-u    = vel[0,:,:,:]
-v    = vel[1,:,:,:]
-w    = vel[2,:,:,:]
-rs11 =  rs[0,:,:,:] 
-rs22 =  rs[1,:,:,:] 
-rs33 =  rs[2,:,:,:]
-rs13 =  rs[3,:,:,:] 
-rs23 =  rs[4,:,:,:] 
-rs12 =  rs[5,:,:,:]
-txx  = tau[0,:,:,:] 
-txy  = tau[1,:,:,:] 
-tyy  = tau[2,:,:,:]
-txz  = tau[3,:,:,:] 
-tyz  = tau[4,:,:,:] 
-tzz  = tau[5,:,:,:]
-
-# compute horizontal averages
-uXMean = np.mean(u, axis=2)      # x-average
-uMean = np.mean(uXMean, axis=1)  # x- and y-averaged
-
-txzMean = np.mean(txz, axis=2)      # x-averaging
-txzMean = np.mean(txzMean, axis=1)  # y-averaging
-
-rs11Mean = np.mean(rs11, axis=2)
-rs11Mean = np.mean(rs11Mean, axis=1)
-rs22Mean = np.mean(rs22, axis=2)
-rs22Mean = np.mean(rs22Mean, axis=1)
-rs33Mean = np.mean(rs33, axis=2)
-rs33Mean = np.mean(rs33Mean, axis=1)
-rs13Mean = np.mean(rs13, axis=2)
-rs13Mean = np.mean(rs13Mean, axis=1)
-rs23Mean = np.mean(rs23, axis=2)
-rs23Mean = np.mean(rs23Mean, axis=1)
-rs12Mean = np.mean(rs12, axis=2)
-rs12Mean = np.mean(rs12Mean, axis=1)
+datdir = 'pyData/'
+figdir = 'pyFigs/'
+system('mkdir ' + figdir)
 
 plt.close("all")
 # begin plotting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 if vel_avg_plot:
+    uMean = np.load(datdir+'uMean.npy')
     fig = plt.figure()
     plt.semilogx(z, uMean, 'o')
     plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
@@ -189,31 +66,52 @@ if vel_avg_plot:
     plt.text(.4,3,r'$ \kappa = 0.4,\ z_{0} = 10^{-4} $', fontsize=14)
     plt.legend(loc='lower right', fontsize=14)
     plt.tight_layout()
-    plt.savefig('mvp_' + runName + '.png')
-    fig.show()
+    plt.savefig(figdir+'mvp_' + runName + '.png')
+    plt.savefig(figdir+'mvp_' + runName + '.pdf')
+    plt.savefig(figdir+'mvp_' + runName + '.eps')
+    plt.savefig(figdir+'mvp_' + runName + '.jpg')
+    plt.savefig(figdir+'dpi600-'+'mvp_' + runName + '.png',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'mvp_' + runName + '.pdf',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'mvp_' + runName + '.eps',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'mvp_' + runName + '.jpg',dpi=600)
+    #fig.show()
 
     scale = 3.0;
     fig = plt.figure(figsize=(scale*Ly,scale*Lz))
     Y, Z = np.meshgrid(y, z)
-    cs = plt.contourf(Y, Z, uXMean[:,:])
+    uXMean = np.load(datdir+'uXMean.npy')
+    cs = plt.contourf(Y, Z, uXMean[:,:], vmin=0, vmax=17)
     cbar = plt.colorbar()
     plt.xlabel('$ y / H $', fontsize=18); plt.ylabel('$ z / H $', fontsize=18);
     #plt.suptitle('Streamwise velocity contours', fontsize = 16)
     # now make a circle with no fill, which is good for hilighting key results
-    circle1=plt.Circle((y[1*ny/5],0.1),.05,color='k',fill=False)
-    circle2=plt.Circle((y[2*ny/5],0.1),.05,color='k',fill=False)
-    circle3=plt.Circle((y[3*ny/5],0.1),.05,color='k',fill=False)
-    circle4=plt.Circle((y[4*ny/5],0.1),.05,color='k',fill=False)
+    circle1=plt.Circle((0.261799, 0.1),.05,color='k',fill=False)
+    circle2=plt.Circle((0.785398, 0.1),.05,color='k',fill=False)
+    circle3=plt.Circle((1.309, 0.1),.05,color='k',fill=False)
+    circle4=plt.Circle((1.8326, 0.1),.05,color='k',fill=False)
+    circle5=plt.Circle((2.35619, 0.1),.05,color='k',fill=False)
+    circle6=plt.Circle((2.87979, 0.1),.05,color='k',fill=False)
     ax = plt.gca()
     ax.add_artist(circle1)
     ax.add_artist(circle2)
     ax.add_artist(circle3)
     ax.add_artist(circle4)
+    ax.add_artist(circle5)
+    ax.add_artist(circle6)
     plt.tight_layout()
-    plt.savefig('uXmean_' + runName + '.png')  #,dpi = 300
-    fig.show()
+    plt.savefig(figdir+'uXmean_' + runName + '.png')
+    plt.savefig(figdir+'uXmean_' + runName + '.pdf')
+    plt.savefig(figdir+'uXmean_' + runName + '.eps')
+    plt.savefig(figdir+'uXmean_' + runName + '.jpg')
+    plt.savefig(figdir+'dpi600-'+'uXmean_' + runName + '.png',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'uXmean_' + runName + '.pdf',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'uXmean_' + runName + '.eps',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'uXmean_' + runName + '.jpg',dpi=600)
+    #fig.show()
 
 if tau_plot:
+    rs13Mean = np.load(datdir+'rs13Mean.npy')
+    txzMean = np.load(datdir+'txzMean.npy')
     fig = plt.figure()
     plt.plot(-1*rs13Mean, z, '-o', color='g', label = r'$[ u^{\prime} w^{\prime}]$')
     plt.plot(-1*txzMean, z, '-o', color='r', label = r'$ [ \tau_{xz} ] $')
@@ -225,10 +123,23 @@ if tau_plot:
     plt.xlabel(r'$ \mathrm{Stress} $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('tau_' + runName + '.png')
-    fig.show()
+    plt.savefig(figdir+'tau_' + runName + '.png')
+    plt.savefig(figdir+'tau_' + runName + '.pdf')
+    plt.savefig(figdir+'tau_' + runName + '.eps')
+    plt.savefig(figdir+'tau_' + runName + '.jpg')
+    plt.savefig(figdir+'dpi600-'+'tau_' + runName + '.png',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'tau_' + runName + '.pdf',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'tau_' + runName + '.eps',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'tau_' + runName + '.jpg',dpi=600)
+    #fig.show()
     
 if rs_plot:
+    rs11Mean = np.load(datdir+'rs11Mean.npy')
+    rs22Mean = np.load(datdir+'rs22Mean.npy')
+    rs33Mean = np.load(datdir+'rs33Mean.npy')
+    rs13Mean = np.load(datdir+'rs13Mean.npy')
+    rs23Mean = np.load(datdir+'rs23Mean.npy')
+    rs12Mean = np.load(datdir+'rs12Mean.npy')
     fig = plt.figure()
     L1=plt.plot(z, rs11Mean, 'o', color='b', label = r'$[ u^{\prime} u^{\prime}]$')
     L2=plt.plot(z, rs22Mean, 'o', color='g', label = r'$[ v^{\prime} v^{\prime}]$')
@@ -239,10 +150,18 @@ if rs_plot:
     plt.legend(loc='upper right')
     plt.xlabel(r'$ z / H $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
     plt.tight_layout()
-    plt.savefig('rs_' + runName + '.png')
-    fig.show()
+    plt.savefig(figdir+'rs_' + runName + '.png')
+    plt.savefig(figdir+'rs_' + runName + '.pdf')
+    plt.savefig(figdir+'rs_' + runName + '.eps')
+    plt.savefig(figdir+'rs_' + runName + '.jpg')
+    plt.savefig(figdir+'dpi600-'+'rs_' + runName + '.png',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'rs_' + runName + '.pdf',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'rs_' + runName + '.eps',dpi=600)
+    plt.savefig(figdir+'dpi600-'+'rs_' + runName + '.jpg',dpi=600)
+    #fig.show()
 
 if snap_plot_xy:
+    snap = np.load(datadir+'snap.npy')
     X, Y = np.meshgrid(x, y)
     for k in range(2,3):
         scale = 3.0
@@ -251,10 +170,11 @@ if snap_plot_xy:
         cbar = plt.colorbar()
         plt.xlabel(r'$ x / H $', fontsize=18); plt.ylabel(r'$ y / H $', fontsize=18); 
         plt.tight_layout()
-        fig.show()
-        #plt.savefig('xy_'+str(k)+'.png', dpi=100)
+        #fig.show()
+        #plt.savefig(figdir+'xy_'+str(k)+'.png', dpi=100)
 
 if snap_plot_yz:
+    snap = np.load(datadir+'snap.npy')
     Y, Z = np.meshgrid(y, z)
     for i in range(2,3):
         scale = 3.0;
@@ -264,8 +184,16 @@ if snap_plot_yz:
         cbar = plt.colorbar()
         plt.xlabel(r'$ y / H $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18); 
         plt.tight_layout()
-        plt.savefig(csName + runName + '.png') #,dpi=300)
-        fig.show()
+        plt.savefig(figdir + csName + runName + '.png')
+        plt.savefig(figdir + csName + runName + '.pdf')
+        plt.savefig(figdir + csName + runName + '.eps')
+        plt.savefig(figdir + csName + runName + '.jpg')
+        plt.savefig(figdir+'dpi600-'+ csName + runName + '.png',dpi=600)
+        plt.savefig(figdir+'dpi600-'+ csName + runName + '.pdf',dpi=600)
+        plt.savefig(figdir+'dpi600-'+ csName + runName + '.eps',dpi=600)
+        plt.savefig(figdir+'dpi600-'+ csName + runName + '.jpg',dpi=600)
+
+        #fig.show()
         
         #plt.savefig('yzCont_'+str(i)+'.png', dpi=300)
         #plt.savefig('yzPcol_'+str(i)+'.png')

@@ -29,12 +29,12 @@ print nproc
 #print a
 
 #kx_vec=[0,4,8]
-kx_vec=[0]
+#kx_vec=[0]
 #kx_vec=[0,1,2]
 
 avg       = 1;
 snapshots = 0;  thisSnap = 5000;
-fourier   = 1;
+fourier   = 0;
 
 if avg:
     # neglect top point in each proc except last proc

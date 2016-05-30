@@ -40,6 +40,7 @@ kx_vec=[0]
 
 vel_avg_plot = 1;
 rs_plot      = 1;
+vel2_rs_plot = 1;
 tau_plot     = 1;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
@@ -164,6 +165,36 @@ if rs_plot:
     plt.savefig(figdir3+'dpi600-'+'rs_' + runName + '.jpg',dpi=600)
     #fig.show()
 
+    if vel2_rs_plot:
+            #uuMean = np.load(datdir+'uuMean.npy')  # very large
+            #plt.gca().lines.remove(L1)
+            vvMean = np.load(datdir+'vvMean.npy')
+            wwMean = np.load(datdir+'wwMean.npy')
+            uwMean = np.load(datdir+'uwMean.npy')
+            vwMean = np.load(datdir+'vwMean.npy')
+            uvMean = np.load(datdir+'uvMean.npy')
+            #L7=plt.plot(z, uuMean, color='b', label = r'$[ uu ]$')
+            L8=plt.plot(z, vvMean, color='g', label = r'$[ vv ]$')
+            L9=plt.plot(z, wwMean, color='r', label = r'$[ ww ]$')
+            L10=plt.plot(z, -1*uwMean, color='c', label = r'$[ uw ]$')
+            L11=plt.plot(z, vwMean, color='m', label = r'$[ vw ]$')
+            L12=plt.plot(z, uvMean, color='k', label = r'$[ uv ]$')
+            plt.legend(loc='upper left',ncol=2)
+            plt.xlabel(r'$ z / H $', fontsize=18); 
+            plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+            plt.tight_layout()
+            plt.savefig(figdir1+'vel2_rs_' + runName + '.png')
+            plt.savefig(figdir2+'vel2_rs_' + runName + '.pdf')
+            plt.savefig(figdir2+'vel2_rs_' + runName + '.eps')
+            plt.savefig(figdir2+'vel2_rs_' + runName + '.jpg')
+            plt.savefig(figdir3+'dpi600-'+'vel2_rs_' + runName + '.png',dpi=600)
+            plt.savefig(figdir3+'dpi600-'+'vel2_rs_' + runName + '.pdf',dpi=600)
+            plt.savefig(figdir3+'dpi600-'+'vel2_rs_' + runName + '.eps',dpi=600)
+            plt.savefig(figdir3+'dpi600-'+'vel2_rs_' + runName + '.jpg',dpi=600)
+            #fig.show()
+
+
+
 if snap_plot_xy:
     snap = np.load(datadir+'snap.npy')
     X, Y = np.meshgrid(x, y)
@@ -197,13 +228,10 @@ if snap_plot_yz:
         plt.savefig(figdir3+'dpi600-'+ csName + runName + '.eps',dpi=600)
         plt.savefig(figdir3+'dpi600-'+ csName + runName + '.jpg',dpi=600)
         #fig.show()
-        
-        #plt.savefig('yzCont_'+str(i)+'.png', dpi=300)
-        #plt.savefig('yzPcol_'+str(i)+'.png')
-        #plt.savefig('yzPcol_'+str(i)+'.pdf', dpi=100)
-        #plt.savefig('yzPcol_'+str(i)+'.eps', dpi=100)
-        #print plt.gcf().canvas.get_supported_filetypes()
-        #print plt.gcf().canvas.get_supported_filetypes_grouped()
+
+        # print plt.gcf().canvas.get_supported_filetypes()
+        # print plt.gcf().canvas.get_supported_filetypes_grouped()
+        #
         # 'Scalable Vector Graphics': ['svg', 'svgz']
         # 'Portable Network Graphics': ['png']
         # 'Postscript': ['ps']
@@ -213,6 +241,3 @@ if snap_plot_yz:
         # 'Raw RGBA bitmap': ['raw', 'rgba']
         # 'Portable Document Format': ['pdf']
         # 'Enhanced Metafile': ['emf']
-
-        
-

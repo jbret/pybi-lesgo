@@ -39,9 +39,10 @@ kx_vec=[0]
 #kx_vec=[0,1,2]
 
 vel_avg_plot = 1;
-rs_plot      = 1;
-vel2_rs_plot = 1;
-tau_plot     = 1;
+rs_plot      = 0;
+sp_plot      = 1;
+vel2_rs_plot = 0;
+tau_plot     = 0;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
@@ -137,6 +138,27 @@ if tau_plot:
     plt.savefig(figdir3+'dpi600-'+'tau_' + runName + '.eps',dpi=600)
     plt.savefig(figdir3+'dpi600-'+'tau_' + runName + '.jpg',dpi=600)
     #fig.show()
+
+if sp_plot:
+    sp11 = np.load(datdir+'sp11.npy')
+    X, Y = np.meshgrid(x, y)
+    for i in range(2,nz,30):
+        scale = 3.0;
+        fig = plt.figure(figsize=(scale*Ly,scale*Lz))
+        cs = plt.contourf(X, Y, sp11[i,:,:]);  csName = 'spCon'+str(i)
+        #cs = plt.pcolor(X, Y, sp11[i,:,:]);  csName = 'spCol'+str(i)
+        cbar = plt.colorbar()
+        plt.xlabel(r'$ x $', fontsize=18); plt.ylabel(r'$ y $', fontsize=18); 
+        plt.tight_layout()
+        plt.savefig(figdir1 + csName + runName + '.png')
+        plt.savefig(figdir2 + csName + runName + '.pdf')
+        plt.savefig(figdir2 + csName + runName + '.eps')
+        plt.savefig(figdir2 + csName + runName + '.jpg')
+        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.png',dpi=600)
+        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.pdf',dpi=600)
+        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.eps',dpi=600)
+        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.jpg',dpi=600)
+        #fig.show()
     
 if rs_plot:
     rs11Mean = np.load(datdir+'rs11Mean.npy')
@@ -196,7 +218,7 @@ if rs_plot:
 
 
 if snap_plot_xy:
-    snap = np.load(datadir+'snap.npy')
+    snap = np.load(datdir+'snap.npy')
     X, Y = np.meshgrid(x, y)
     for k in range(2,3):
         scale = 3.0
@@ -209,7 +231,7 @@ if snap_plot_xy:
         #plt.savefig(figdir+'xy_'+str(k)+'.png', dpi=100)
 
 if snap_plot_yz:
-    snap = np.load(datadir+'snap.npy')
+    snap = np.load(datdir+'snap.npy')
     Y, Z = np.meshgrid(y, z)
     for i in range(2,3):
         scale = 3.0;

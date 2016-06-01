@@ -210,7 +210,7 @@ vwMean = np.mean(vwMean, axis=1)
 uvMean = np.mean(uv, axis=2)
 uvMean = np.mean(uvMean, axis=1)
 
-datdir = 'pyData/'
+datdir = 'data-npy/'
 system('mkdir ' + datdir)
 np.save(datdir+'uXMean', uXMean)
 np.save(datdir+'uMean', uMean)

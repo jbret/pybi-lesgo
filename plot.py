@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 import re
 from subprocess import check_output
 from read_lesgo_bin import readmyfile
@@ -31,8 +32,8 @@ print nproc
 #a = re.findall(r"\d*([^]+)",dummyStr)
 #print a
 
-Lx = np.pi;
-Ly = np.pi;
+Lx = 2*np.pi;
+Ly = 2*np.pi;
 Lz = 1.0;
 #kx_vec=[0,4,8]
 kx_vec=[0]
@@ -53,7 +54,7 @@ y = np.linspace(0, Ly, ny, endpoint=False)
 x = np.linspace(0, Lx, nx, endpoint=False)
 
 datdir = 'pyData/'
-figdir1 = 'pyFigs/'
+figdir1 = 'figs/'
 figdir2 = figdir1 + 'otherFormats/'
 figdir3 = figdir1 + 'highDPI/'
 system('mkdir ' + figdir1)
@@ -140,25 +141,68 @@ if tau_plot:
     #fig.show()
 
 if sp_plot:
+    ky = np.arange(0,ny/2)
+    lamY = Ly / ky
+
     sp11 = np.load(datdir+'sp11.npy')
-    X, Y = np.meshgrid(x, y)
-    for i in range(2,nz,30):
-        scale = 3.0;
-        fig = plt.figure(figsize=(scale*Ly,scale*Lz))
-        cs = plt.contourf(X, Y, sp11[i,:,:]);  csName = 'spCon'+str(i)
-        #cs = plt.pcolor(X, Y, sp11[i,:,:]);  csName = 'spCol'+str(i)
-        cbar = plt.colorbar()
-        plt.xlabel(r'$ x $', fontsize=18); plt.ylabel(r'$ y $', fontsize=18); 
-        plt.tight_layout()
-        plt.savefig(figdir1 + csName + runName + '.png')
-        plt.savefig(figdir2 + csName + runName + '.pdf')
-        plt.savefig(figdir2 + csName + runName + '.eps')
-        plt.savefig(figdir2 + csName + runName + '.jpg')
-        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.png',dpi=600)
-        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.pdf',dpi=600)
-        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.eps',dpi=600)
-        plt.savefig(figdir3+'dpi600-'+ csName + runName + '.jpg',dpi=600)
-        #fig.show()
+    sp11sum1 = np.sum(sp11,axis=2)  # sum over kx
+    sp11sum13 = np.sum(sp11sum1,axis=0) # sum over z
+    kyE11 = ky * sp11sum1[:,0:ny/2]/ sp11sum13[0:ny/2]
+
+    sp22 = np.load(datdir+'sp22.npy')
+    sp22sum1 = np.sum(sp22,axis=2)  # sum over kx
+    sp22sum13 = np.sum(sp22sum1,axis=0) # sum over z
+    kyE22 = ky * sp22sum1[:,0:ny/2] / sp22sum13[0:ny/2]
+
+    sp33 = np.load(datdir+'sp33.npy')
+    sp33sum1 = np.sum(sp33,axis=2)  # sum over kx
+    sp33sum13 = np.sum(sp33sum1,axis=0) # sum over z
+    kyE33 = ky * sp33sum1[:,0:ny/2] / sp33sum13[0:ny/2]
+
+    #kyE33 = np.zeros([nz,ny/2])
+    #for k in range(0,nz):
+    #    for j in range (0,ny/2):
+    #        kyE33[k,j] = ky[j]*sp22sum1[k,j]/sp22sum13[j]
+
+    LAMY, Z = np.meshgrid(lamY[1:], z[1:])
+    scale = 1.0;
+    #fig = plt.figure(figsize=(scale*Ly,scale*Lz))
+    fig = plt.figure()
+
+    ax = fig.add_subplot(3,1,1,adjustable='box',aspect=0.5)
+    cs = plt.contourf(LAMY, Z, kyE11[1:,1:]);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.tight_layout()
+     
+    ax = fig.add_subplot(3,1,2,adjustable='box',aspect=0.5)
+    cs = plt.contourf(LAMY, Z, kyE22[1:,1:]);  
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.tight_layout()
+    
+    ax = fig.add_subplot(3,1,3,adjustable='box',aspect=0.5)
+    cs = plt.contourf(LAMY, Z, kyE33[1:,1:]);  
+    csName = 'kyEii'
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.tight_layout()
+
+    plt.savefig(figdir1 + csName + runName + '.png')
+    plt.savefig(figdir2 + csName + runName + '.pdf')
+    plt.savefig(figdir2 + csName + runName + '.eps')
+    plt.savefig(figdir2 + csName + runName + '.jpg')
+    plt.savefig(figdir3+'dpi600-'+ csName + runName + '.png',dpi=600)
+    plt.savefig(figdir3+'dpi600-'+ csName + runName + '.pdf',dpi=600)
+    plt.savefig(figdir3+'dpi600-'+ csName + runName + '.eps',dpi=600)
+    plt.savefig(figdir3+'dpi600-'+ csName + runName + '.jpg',dpi=600)
+    #fig.show()
     
 if rs_plot:
     rs11Mean = np.load(datdir+'rs11Mean.npy')

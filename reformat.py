@@ -28,10 +28,6 @@ print nproc
 #a = re.findall(r"\d*([^]+)",dummyStr)
 #print a
 
-#kx_vec=[0,4,8]
-#kx_vec=[0]
-#kx_vec=[0,1,2]
-
 avg       = 1;
 snapshots = 0;  thisSnap = 5000;
 fourier   = 1;

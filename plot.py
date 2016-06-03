@@ -41,8 +41,8 @@ kx_vec=[0]
 
 vel_avg_plot = 1;
 rs_plot      = 1;
-sp_plot      = 1;
 sp1d_plot    = 1;
+sp2d_plot    = 0;
 vel2_rs_plot = 1;
 tau_plot     = 1;
 spanSpec_plot= 1;
@@ -50,6 +50,8 @@ snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
 fourier      = 1;
+
+mkm = 1;   # reference DNS data from MKM 1999
 
 z = np.linspace(0, Lz, nz, endpoint=True)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -91,9 +93,16 @@ if vel_avg_plot:
     #plt.xlim([.02 ,1.1])
     plt.xlim([1, 1000])
     #plt.text(.4,3,r'$ \kappa = 0.4,\ z_{0} = 10^{-4} $', fontsize=14)
+
+    if mkm:
+        yp180 = np.load('yp180.npy')
+        Umean180 = np.load('Umean180.npy')
+        plt.semilogx(yp180, Umean180,'o',label=r'$MKM99, DNS, Re_{\tau} = 180 $')
+
     plt.text(110,2.5,r'$ \kappa = 0.41,\ B = 5.0 $', fontsize=14)
     plt.legend(loc='lower right', fontsize=14)
     plt.tight_layout()
+
     mySaveFig('mvp_', 0)
 
     scale = 3.0;
@@ -147,14 +156,20 @@ if spanSpec_plot:
     spec22 = np.mean(sp22_1d[:,:,:], axis=2)
     spec33 = np.mean(sp33_1d[:,:,:], axis=2)
 
-    #spec11 = np.mean(sp11_1d[:,:,:], axis=2)
-    #spec11 = np.sum(spec11[:,0:], axis=1)
-    #spec22 = np.mean(sp22_1d[:,:,:], axis=2)
-    #spec22 = np.sum(spec22[:,0:], axis=1)
-    #spec33 = np.mean(sp33_1d[:,:,:], axis=2)
-    #spec33 = np.sum(spec33[:,0:], axis=1)
+    Euu180_0 = np.load('Euu180_0.npy')
+    Euu180_1 = np.load('Euu180_1.npy')
+    Euu180_2 = np.load('Euu180_2.npy')
+    Euu180_3 = np.load('Euu180_3.npy')
+    Evv180_0 = np.load('Evv180_0.npy')
+    Evv180_1 = np.load('Evv180_1.npy')
+    Evv180_2 = np.load('Evv180_2.npy')
+    Evv180_3 = np.load('Evv180_3.npy')
+    Eww180_0 = np.load('Eww180_0.npy')
+    Eww180_1 = np.load('Eww180_1.npy')
+    Eww180_2 = np.load('Eww180_2.npy')
+    Eww180_3 = np.load('Eww180_3.npy')
 
-    heights = [ 5, 10, 30 ];  numH = np.size(heights)
+    heights = [ 5, 19, 30, 98 ];  numH = np.size(heights)
     ky = np.arange(0,ny/2)
     fig = plt.figure(figsize=(10,8))
     for j in range(0,numH):
@@ -163,37 +178,110 @@ if spanSpec_plot:
         plt.loglog(ky[1:], spec11[k,1:ny/2],'o', label=r'$E_{uu}$')
         plt.loglog(ky[1:], spec22[k,1:ny/2],'o', label=r'$E_{vv}$')
         plt.loglog(ky[1:], spec33[k,1:ny/2],'o', label=r'$E_{ww}$')
+        plt.loglog(yp180[1:], Euu180_0,'o', label=r'$DNS, E_{uu}$')
+        plt.loglog(yp180[1:], Eww180_0,'o', label=r'$DNS, E_{vv}$')
+        plt.loglog(yp180[1:], Evv180_0,'o', label=r'$DNS, E_{ww}$')
+        
         plt.title(r'$ z^{+} = $'+str(heights[j]));
         plt.xlabel(r'$ k_y $'); plt.tight_layout()
         plt.legend(loc='lower left')
         #plt.ylim([])
-
-    #plt.plot(z[1:], comp11[1:], 's')
     mySaveFig('ky_spec', 0)
 
+if sp1d_plot:
+    sp11_1d = np.load(datdir+'sp11_1d.npy')
+    sp22_1d = np.load(datdir+'sp22_1d.npy')
+    sp33_1d = np.load(datdir+'sp33_1d.npy')
 
-if sp_plot:
+    e11 = np.mean(sp11_1d[:,:,:], axis=2)
+    e22 = np.mean(sp22_1d[:,:,:], axis=2)
+    e33 = np.mean(sp33_1d[:,:,:], axis=2)
+
+    ky = np.arange(0,ny/2)
+    lamY = Ly / ky
+
+    #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
+    kyE11 = ky * e11[:,0:ny/2]
+    kyE22 = ky * e22[:,0:ny/2]
+    kyE33 = ky * e33[:,0:ny/2]
+
+    LAMY, Z = np.meshgrid(lamY[1:], z[1:])
+
+    fig = plt.figure(figsize=(12,4))
+    ax = fig.add_subplot(1,3,1)
+    cs = plt.contourf(LAMY, Z, kyE11[1:,1:]);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
+    plt.tight_layout()
+     
+    ax = fig.add_subplot(1,3,2)
+    cs = plt.contourf(LAMY, Z, kyE22[1:,1:]);  
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    plt.tight_layout()
+    
+    ax = fig.add_subplot(1,3,3)
+    cs = plt.contourf(LAMY, Z, kyE33[1:,1:]);  
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y / \delta $', fontsize=18);
+    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    plt.tight_layout()
+    mySaveFig('kyEii_', 0)
+
+    # now in plus units
+    lamYp = lamY/(1./180)
+    zp = z/(1./180)
+    LAMYP, ZP = np.meshgrid(lamYp[1:], zp[1:])
+    fig = plt.figure(figsize=(12,4))
+    ax = fig.add_subplot(1,3,1)
+    cs = plt.contourf(LAMYP, ZP, kyE11[1:,1:]);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y^{+} $', fontsize=18);
+    plt.ylabel(r'$ z^{+} $', fontsize=18); 
+    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
+    plt.tight_layout()
+     
+    ax = fig.add_subplot(1,3,2)
+    cs = plt.contourf(LAMYP, ZP, kyE22[1:,1:]);  
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y^{+} $', fontsize=18);
+    plt.ylabel(r'$ z^{+} $', fontsize=18); 
+    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    plt.tight_layout()
+    
+    ax = fig.add_subplot(1,3,3)
+    cs = plt.contourf(LAMYP, ZP, kyE33[1:,1:]);  
+    ax.set_xscale('log');  ax.set_yscale('log')
+    cbar = plt.colorbar()
+    plt.xlabel(r'$ \lambda_y^{+} $', fontsize=18);
+    plt.ylabel(r'$ z^{+} $', fontsize=18); 
+    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    plt.tight_layout()
+    mySaveFig('kyEiiplus_', 0)
+
+if sp2d_plot:
     sp11 = np.load(datdir+'sp11.npy')
     sp22 = np.load(datdir+'sp22.npy')
     sp33 = np.load(datdir+'sp33.npy')
     ky = np.arange(0,ny/2)
     lamY = Ly / ky
 
-    fig = plt.figure()
-    plt.loglog(ky, sp11[5,0:ny/2,0],'o', color='g',label = r'$ E_{uu}, z^{+}=5 $')
-    plt.loglog(ky, sp22[5,0:ny/2,0],'o', color='b',label = r'$ E_{vv}, z^{+}=5 $')
-    plt.loglog(ky, sp33[5,0:ny/2,0],'o', color='r',label = r'$ E_{ww}, z^{+}=5 $')
-    plt.loglog(ky, sp11[19,0:ny/2,0],'s', color='g',label = r'$ E_{uu}, z^{+}=19 $')
-    plt.loglog(ky, sp22[19,0:ny/2,0],'s', color='b',label = r'$ E_{vv}, z^{+}=19 $')
-    plt.loglog(ky, sp33[19,0:ny/2,0],'s', color='r',label = r'$ E_{ww}, z^{+}=19 $')
-    plt.loglog(ky, sp11[100,0:ny/2,0],'^', color='g',label = r'$ E_{uu}, z^{+}=100 $')
-    plt.loglog(ky, sp22[100,0:ny/2,0],'^', color='b',label = r'$ E_{vv}, z^{+}=100 $')
-    plt.loglog(ky, sp33[100,0:ny/2,0],'^', color='r',label = r'$ E_{ww}, z^{+}=100 $')
-    plt.xlabel(r'$ k_{y} $'); plt.ylabel(r'$ E_{ii} $')
-    plt.ylim([10**(-14), 10**1])
-    plt.legend(loc='lower left',ncol=3)
-    plt.tight_layout()
-    mySaveFig('spanSpec_', 0)
+    #spec11 = np.mean(sp11_1d[:,:,:], axis=2)
+    #spec11 = np.sum(spec11[:,0:], axis=1)
+    #spec22 = np.mean(sp22_1d[:,:,:], axis=2)
+    #spec22 = np.sum(spec22[:,0:], axis=1)
+    #spec33 = np.mean(sp33_1d[:,:,:], axis=2)
+    #spec33 = np.sum(spec33[:,0:], axis=1)
 
     #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
     sp11sum1 = np.sum(sp11[:,:,1:],axis=2)  # sum over kx
@@ -274,6 +362,7 @@ if sp_plot:
     plt.title(r'$k_y E_{ww}$')
     plt.tight_layout()
     mySaveFig('kyEiiplus_', 0)
+
     
 if rs_plot:
     rs11Mean = np.load(datdir+'rs11Mean.npy')

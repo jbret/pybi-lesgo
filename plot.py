@@ -45,6 +45,7 @@ sp_plot      = 1;
 sp1d_plot    = 1;
 vel2_rs_plot = 1;
 tau_plot     = 1;
+spanSpec_plot= 1;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
@@ -62,15 +63,18 @@ system('mkdir ' + figdir1)
 system('mkdir ' + figdir2)
 system('mkdir ' + figdir3)
 
-def mySaveFig(figName):
+def mySaveFig(figName, hiRes):
+    print '>>> Saving ' + figName
     plt.savefig(figdir1 + figName + runName + '.png')
     plt.savefig(figdir2 + figName + runName + '.pdf')
     plt.savefig(figdir2 + figName + runName + '.eps')
     plt.savefig(figdir2 + figName + runName + '.jpg')
-    plt.savefig(figdir3+'dpi600-'+ figName + runName + '.png',dpi=600)
-    plt.savefig(figdir3+'dpi600-'+ figName + runName + '.pdf',dpi=600)
-    plt.savefig(figdir3+'dpi600-'+ figName + runName + '.eps',dpi=600)
-    plt.savefig(figdir3+'dpi600-'+ figName + runName + '.jpg',dpi=600)
+    if hiRes:
+        myDPI = 600; dpiName = 'dpi'+str(myDPI)+'-';
+        plt.savefig(figdir3+ dpiName + figName + runName + '.png', dpi=myDPI)
+        plt.savefig(figdir3+ dpiName + figName + runName + '.pdf', dpi=myDPI)
+        plt.savefig(figdir3+ dpiName + figName + runName + '.eps', dpi=myDPI)
+        plt.savefig(figdir3+ dpiName + figName + runName + '.jpg', dpi=myDPI)
 
 plt.close("all")
 # begin plotting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -90,7 +94,7 @@ if vel_avg_plot:
     plt.text(110,2.5,r'$ \kappa = 0.41,\ B = 5.0 $', fontsize=14)
     plt.legend(loc='lower right', fontsize=14)
     plt.tight_layout()
-    mySaveFig('mvp_')
+    mySaveFig('mvp_', 0)
 
     scale = 3.0;
     fig = plt.figure(figsize=(scale*Ly,scale*Lz))
@@ -115,7 +119,7 @@ if vel_avg_plot:
     #ax.add_artist(circle5)
     #ax.add_artist(circle6)
     plt.tight_layout()
-    mySaveFig('uXmean_')
+    mySaveFig('uXmean_', 0)
 
 if tau_plot:
     rs13Mean = np.load(datdir+'rs13Mean.npy')
@@ -131,7 +135,42 @@ if tau_plot:
     plt.xlabel(r'$ \mathrm{Stress} $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18)
     plt.legend()
     plt.tight_layout()
-    mySaveFig('tau_')
+    mySaveFig('tau_', 0)
+
+
+if spanSpec_plot:
+    sp11_1d = np.load(datdir+'sp11_1d.npy')
+    sp22_1d = np.load(datdir+'sp22_1d.npy')
+    sp33_1d = np.load(datdir+'sp33_1d.npy')
+
+    spec11 = np.mean(sp11_1d[:,:,:], axis=2)
+    spec22 = np.mean(sp22_1d[:,:,:], axis=2)
+    spec33 = np.mean(sp33_1d[:,:,:], axis=2)
+
+    #spec11 = np.mean(sp11_1d[:,:,:], axis=2)
+    #spec11 = np.sum(spec11[:,0:], axis=1)
+    #spec22 = np.mean(sp22_1d[:,:,:], axis=2)
+    #spec22 = np.sum(spec22[:,0:], axis=1)
+    #spec33 = np.mean(sp33_1d[:,:,:], axis=2)
+    #spec33 = np.sum(spec33[:,0:], axis=1)
+
+    heights = [ 5, 10, 30 ];  numH = np.size(heights)
+    ky = np.arange(0,ny/2)
+    fig = plt.figure(figsize=(10,8))
+    for j in range(0,numH):
+        plt.subplot(1,numH,j+1)
+        k = heights[j]
+        plt.loglog(ky[1:], spec11[k,1:ny/2],'o', label=r'$E_{uu}$')
+        plt.loglog(ky[1:], spec22[k,1:ny/2],'o', label=r'$E_{vv}$')
+        plt.loglog(ky[1:], spec33[k,1:ny/2],'o', label=r'$E_{ww}$')
+        plt.title(r'$ z^{+} = $'+str(heights[j]));
+        plt.xlabel(r'$ k_y $'); plt.tight_layout()
+        plt.legend(loc='lower left')
+        #plt.ylim([])
+
+    #plt.plot(z[1:], comp11[1:], 's')
+    mySaveFig('ky_spec', 0)
+
 
 if sp_plot:
     sp11 = np.load(datdir+'sp11.npy')
@@ -154,7 +193,7 @@ if sp_plot:
     plt.ylim([10**(-14), 10**1])
     plt.legend(loc='lower left',ncol=3)
     plt.tight_layout()
-    mySaveFig('spanSpec_')
+    mySaveFig('spanSpec_', 0)
 
     #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
     sp11sum1 = np.sum(sp11[:,:,1:],axis=2)  # sum over kx
@@ -202,7 +241,7 @@ if sp_plot:
     plt.ylabel(r'$ z / \delta $', fontsize=18); 
     plt.title(r'$k_y E_{ww}$')
     plt.tight_layout()
-    mySaveFig('kyEii_')
+    mySaveFig('kyEii_', 0)
 
     lamYp = lamY/(1./180)
     zp = z/(1./180)
@@ -234,7 +273,7 @@ if sp_plot:
     plt.ylabel(r'$ z^{+} $', fontsize=18); 
     plt.title(r'$k_y E_{ww}$')
     plt.tight_layout()
-    mySaveFig('kyEiiplus_')
+    mySaveFig('kyEiiplus_', 0)
     
 if rs_plot:
     rs11Mean = np.load(datdir+'rs11Mean.npy')
@@ -265,7 +304,7 @@ if rs_plot:
     plt.legend(loc='upper right',ncol=2)
     plt.xlabel(r'$ z^{+} $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
     plt.tight_layout()
-    mySaveFig('rs_')
+    mySaveFig('rs_', 0)
 
     fig = plt.figure()
     plt.subplot(2,1,1)
@@ -287,7 +326,7 @@ if rs_plot:
     plt.legend(loc='upper center',ncol=5)
     plt.xlabel(r'$ z^{+} $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
     plt.tight_layout()
-    mySaveFig('rs2_')
+    mySaveFig('rs2_', 0)
 
     if vel2_rs_plot:
             fig = plt.figure()
@@ -312,7 +351,7 @@ if rs_plot:
             plt.xlabel(r'$ z / H $', fontsize=18); 
             plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
             plt.tight_layout()
-            mySaveFig('vel2_rs_')
+            mySaveFig('vel2_rs_', 0)
 
 
             #sp11_1d = np.load(datdir+'sp11_1d.npy')
@@ -322,7 +361,7 @@ if rs_plot:
             #comp11 = np.mean(sp11_1d[:,:,:], axis=2)
             #comp11 = np.sum(comp11[:,0:], axis=1)
             #plt.plot(z[1:], comp11[1:], 's')
-            #mySaveFig('comp')
+            #mySaveFig('comp', 0)
 
 
 if snap_plot_xy:
@@ -349,7 +388,7 @@ if snap_plot_yz:
         cbar = plt.colorbar()
         plt.xlabel(r'$ y / H $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18); 
         plt.tight_layout()
-        mySaveFig(csName)
+        mySaveFig(csName, 0)
 
         # print plt.gcf().canvas.get_supported_filetypes()
         # print plt.gcf().canvas.get_supported_filetypes_grouped()

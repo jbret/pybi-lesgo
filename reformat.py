@@ -59,6 +59,14 @@ if avg:
         a = i*nz_;  b = (i+1)*nz_
         sp[:,a:b,:,:] = sp_i[:,0:nz_,:,:]
 
+    sp1d  = np.zeros((6,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_sp1d.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        sp1d[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
+
     rs = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
         fileName = './output/binary_rs.dat.c' + str(i)
@@ -90,6 +98,7 @@ if fourier:
     vel2c = np.zeros((6,nz,ny,nx), dtype=complex)
     rsc   = np.zeros((6,nz,ny,nx), dtype=complex)
     spc   = np.zeros((6,nz,ny,nx), dtype=complex)
+    sp1dc   = np.zeros((6,nz,ny,nx), dtype=complex)
     tauc  = np.zeros((6,nz,ny,nx), dtype=complex)
     snapc = np.zeros((3,nz,ny,nx), dtype=complex)
 
@@ -100,6 +109,7 @@ if fourier:
         vel2c[:,:,:,i] = vel2[:,:,:,a] + 1j * vel2[:,:,:,b]
         rsc[:,:,:,i]   =   rs[:,:,:,a] + 1j *   rs[:,:,:,b]
         spc[:,:,:,i]   =   sp[:,:,:,a] + 1j *   sp[:,:,:,b]
+        sp1dc[:,:,:,i]   =   sp1d[:,:,:,a] + 1j *   sp1d[:,:,:,b]
         snapc[:,:,:,i] = snap[:,:,:,a] + 1j * snap[:,:,:,b]
         tauc[:,:,:,i]  =  tau[:,:,:,a] + 1j *  tau[:,:,:,b]
         if i > 0:
@@ -107,6 +117,7 @@ if fourier:
             vel2c[:,:,:,e] = np.conj(vel2c[:,:,:,i])
             rsc[:,:,:,e] = np.conj(rsc[:,:,:,i])
             spc[:,:,:,e] = np.conj(spc[:,:,:,i])
+            #sp1dc[:,:,:,e] = np.conj(sp1dc[:,:,:,i])
 
     for v in range(0,3):
         for i in range(0,nx/2):
@@ -142,6 +153,7 @@ if fourier:
     vel2 = np.real(vel2ci)
     rs = np.real(rsci)
     sp = np.real(spc)
+    sp1d = np.real(sp1dc)
     snap = np.real(snapci)
     tau = np.real(tauci)
 
@@ -170,6 +182,12 @@ sp33 =   sp[2,:,:,:]
 sp13 =   sp[3,:,:,:] 
 sp23 =   sp[4,:,:,:] 
 sp12 =   sp[5,:,:,:]
+sp11_1d =   sp1d[0,:,:,:] 
+sp22_1d =   sp1d[1,:,:,:] 
+sp33_1d =   sp1d[2,:,:,:]
+sp13_1d =   sp1d[3,:,:,:] 
+sp23_1d =   sp1d[4,:,:,:] 
+sp12_1d =   sp1d[5,:,:,:]
 txx  =  tau[0,:,:,:] 
 txy  =  tau[1,:,:,:] 
 tyy  =  tau[2,:,:,:]
@@ -249,6 +267,12 @@ np.save(datdir+'sp33', sp33)
 np.save(datdir+'sp13', sp13)
 np.save(datdir+'sp23', sp23)
 np.save(datdir+'sp12', sp12)
+np.save(datdir+'sp11_1d', sp11_1d)
+np.save(datdir+'sp22_1d', sp22_1d)
+np.save(datdir+'sp33_1d', sp33_1d)
+np.save(datdir+'sp13_1d', sp13_1d)
+np.save(datdir+'sp23_1d', sp23_1d)
+np.save(datdir+'sp12_1d', sp12_1d)
 np.save(datdir+'txx', txx)
 np.save(datdir+'tyy', tyy)
 np.save(datdir+'tzz', tzz)

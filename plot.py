@@ -42,6 +42,7 @@ kx_vec=[0]
 vel_avg_plot = 1;
 rs_plot      = 1;
 sp_plot      = 1;
+sp1d_plot    = 1;
 vel2_rs_plot = 1;
 tau_plot     = 1;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
@@ -312,6 +313,17 @@ if rs_plot:
             plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
             plt.tight_layout()
             mySaveFig('vel2_rs_')
+
+
+            #sp11_1d = np.load(datdir+'sp11_1d.npy')
+            #fig = plt.figure()
+            #plt.plot(z,rs11Mean,'o')
+            #plt.plot(z,uuMean,'^')
+            #comp11 = np.mean(sp11_1d[:,:,:], axis=2)
+            #comp11 = np.sum(comp11[:,0:], axis=1)
+            #plt.plot(z[1:], comp11[1:], 's')
+            #mySaveFig('comp')
+
 
 if snap_plot_xy:
     snap = np.load(datdir+'snap.npy')

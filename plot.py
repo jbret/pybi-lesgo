@@ -39,19 +39,19 @@ Lz = 1.0;
 kx_vec=[0]
 #kx_vec=[0,1,2]
 
-vel_avg_plot = 1;
+vel_avg_plot = 0;
 rs_plot      = 1;
-sp1d_plot    = 1;
+sp1d_plot    = 0;
 sp2d_plot    = 0;
 vel2_rs_plot = 1;
-tau_plot     = 1;
+tau_plot     = 0;
 spanSpec_plot= 1;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
 fourier      = 1;
 
-mkm = 1;   # reference DNS data from MKM 1999
+mkm = 0;   # reference DNS data from MKM 1999
 
 z = np.linspace(0, Lz, nz, endpoint=True)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -178,9 +178,10 @@ if spanSpec_plot:
         plt.loglog(ky[1:], spec11[k,1:ny/2],'o', label=r'$E_{uu}$')
         plt.loglog(ky[1:], spec22[k,1:ny/2],'o', label=r'$E_{vv}$')
         plt.loglog(ky[1:], spec33[k,1:ny/2],'o', label=r'$E_{ww}$')
-        plt.loglog(yp180[1:], Euu180_0,'o', label=r'$DNS, E_{uu}$')
-        plt.loglog(yp180[1:], Eww180_0,'o', label=r'$DNS, E_{vv}$')
-        plt.loglog(yp180[1:], Evv180_0,'o', label=r'$DNS, E_{ww}$')
+        if mkm:
+            plt.loglog(yp180[1:], Euu180_0,'o', label=r'$DNS, E_{uu}$')
+            plt.loglog(yp180[1:], Eww180_0,'o', label=r'$DNS, E_{vv}$')
+            plt.loglog(yp180[1:], Evv180_0,'o', label=r'$DNS, E_{ww}$')
         
         plt.title(r'$ z^{+} = $'+str(heights[j]));
         plt.xlabel(r'$ k_y $'); plt.tight_layout()
@@ -442,15 +443,43 @@ if rs_plot:
             plt.tight_layout()
             mySaveFig('vel2_rs_', 0)
 
+            uuMean = np.load(datdir+'uuMean.npy')
 
-            #sp11_1d = np.load(datdir+'sp11_1d.npy')
-            #fig = plt.figure()
-            #plt.plot(z,rs11Mean,'o')
-            #plt.plot(z,uuMean,'^')
-            #comp11 = np.mean(sp11_1d[:,:,:], axis=2)
-            #comp11 = np.sum(comp11[:,0:], axis=1)
-            #plt.plot(z[1:], comp11[1:], 's')
-            #mySaveFig('comp', 0)
+            sp11_1d = np.load(datdir+'sp11_1d.npy')
+            fig = plt.figure()
+            plt.plot(z,rs11Mean,'^',label='rs11')
+            plt.plot(z,uuMean,'s',label='uuMean')
+            comp11 = np.mean(sp11_1d[:,:,:], axis=2)
+            comp11 = np.sum(comp11[:,0:], axis=1)
+            plt.plot(z[1:], comp11[1:], 'o', label='spect')
+            plt.legend()
+            mySaveFig('comp11', 0)
+
+
+            sp22_1d = np.load(datdir+'sp22_1d.npy')
+            fig = plt.figure()
+            plt.plot(z,rs22Mean,'^',label='rs22')
+            plt.plot(z,vvMean,'s',label='vvMean')
+            comp22 = np.mean(sp22_1d[:,:,:], axis=2)
+            comp22 = np.sum(comp22[:,0:], axis=1)
+            plt.plot(z[1:], comp22[1:], 'o', label='spect')
+            plt.legend()
+            mySaveFig('comp22', 0)
+
+            
+            sp33_1d = np.load(datdir+'sp33_1d.npy')
+            fig = plt.figure()
+            plt.plot(z,rs33Mean,'^',label='rs33')
+            plt.plot(z,wwMean,'s',label='wwMean')
+            comp33 = np.mean(sp33_1d[:,:,:], axis=2)
+            comp33 = np.sum(comp33[:,0:], axis=1)
+            plt.plot(z[1:], comp33[1:], 'o', label='spect')
+            plt.legend()
+            mySaveFig('comp33', 0)
+
+            
+
+
 
 
 if snap_plot_xy:

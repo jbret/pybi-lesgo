@@ -39,13 +39,13 @@ Lz = 1.0;
 kx_vec=[0]
 #kx_vec=[0,1,2]
 
-vel_avg_plot = 0;
+vel_avg_plot = 1;
 rs_plot      = 1;
 sp1d_plot    = 0;
 sp2d_plot    = 0;
-vel2_rs_plot = 1;
+vel2_rs_plot = 0;
 tau_plot     = 0;
-spanSpec_plot= 1;
+spanSpec_plot= 0;
 snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
 snap_plot_yz = 0;
 snap_plot_xy = 0;
@@ -156,18 +156,18 @@ if spanSpec_plot:
     spec22 = np.mean(sp22_1d[:,:,:], axis=2)
     spec33 = np.mean(sp33_1d[:,:,:], axis=2)
 
-    Euu180_0 = np.load('Euu180_0.npy')
-    Euu180_1 = np.load('Euu180_1.npy')
-    Euu180_2 = np.load('Euu180_2.npy')
-    Euu180_3 = np.load('Euu180_3.npy')
-    Evv180_0 = np.load('Evv180_0.npy')
-    Evv180_1 = np.load('Evv180_1.npy')
-    Evv180_2 = np.load('Evv180_2.npy')
-    Evv180_3 = np.load('Evv180_3.npy')
-    Eww180_0 = np.load('Eww180_0.npy')
-    Eww180_1 = np.load('Eww180_1.npy')
-    Eww180_2 = np.load('Eww180_2.npy')
-    Eww180_3 = np.load('Eww180_3.npy')
+    #Euu180_0 = np.load('Euu180_0.npy')
+    #Euu180_1 = np.load('Euu180_1.npy')
+    #Euu180_2 = np.load('Euu180_2.npy')
+    #Euu180_3 = np.load('Euu180_3.npy')
+    #Evv180_0 = np.load('Evv180_0.npy')
+    #Evv180_1 = np.load('Evv180_1.npy')
+    #Evv180_2 = np.load('Evv180_2.npy')
+    #Evv180_3 = np.load('Evv180_3.npy')
+    #Eww180_0 = np.load('Eww180_0.npy')
+    #Eww180_1 = np.load('Eww180_1.npy')
+    #Eww180_2 = np.load('Eww180_2.npy')
+    #Eww180_3 = np.load('Eww180_3.npy')
 
     heights = [ 5, 19, 30, 98 ];  numH = np.size(heights)
     ky = np.arange(0,ny/2)

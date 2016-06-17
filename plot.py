@@ -5,6 +5,7 @@ Author: Joel Bretheim
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rc('text', usetex = True)
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import re

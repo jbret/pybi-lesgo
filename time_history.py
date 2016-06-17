@@ -5,6 +5,7 @@ Author: Joel Bretheim
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rc('text', usetex = True)
 import matplotlib.pyplot as plt
 from cycler import cycler
 from os import getcwd
@@ -49,6 +50,8 @@ if isfile(filename2):
     plt.xlabel('timestep'); plt.ylabel('kx energy')
     plt.legend(loc='lower left',fancybox=True, shadow=True,ncol=2)
     #plt.legend(loc='lower center', fancybox=True, shadow=True, ncol=num_kx-1)
+    ymin, ymax = plt.ylim()
+    #plt.ylim((1, ymax))
     plt.tight_layout()
     plt.savefig('hist_kx_energy' + runName + '.png')
     #fig.show()

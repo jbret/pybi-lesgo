@@ -5,7 +5,9 @@ Author: Joel Bretheim
 import os
 import struct
 import numpy as np
+import sys
 
+print "Endianness: ", sys.byteorder
 def readmyfile(filename, bytes=8, endian='>d'):
     fileSize = os.path.getsize(filename)
     print "File size     : ", fileSize

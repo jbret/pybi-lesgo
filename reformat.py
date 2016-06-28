@@ -103,10 +103,10 @@ if snapshots:
 
 if fourier:
     # complex-valued arrays corresponding to the real-valued arrays
-    # stored in kx,ky space
+    # stored in (kx,ky) space
     tauc    = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
     snapc   = np.zeros((3,nz,ny,nx), dtype=complex) # (kx,ky,z)
-    # stored in kx space
+    # stored in (kx) space
     # (w-grid velocities, the uv grid velocity is apparently kx,ky space)
     velc    = np.zeros((3,nz,ny,nx), dtype=complex) # (kx, y,z) 
     vel2c   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)

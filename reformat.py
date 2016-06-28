@@ -30,7 +30,8 @@ print nproc
 
 avg       = 1;
 snapshots = 0;  thisSnap = 5000;
-fourier   = 1;
+fourier   = 0;
+spectra_jb = 1;
 
 if avg:
     # neglect top point in each proc except last proc
@@ -51,21 +52,29 @@ if avg:
         a = i*nz_;  b = (i+1)*nz_
         vel2[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
 
-    sp  = np.zeros((6,nz,ny,nx))
+    sp2d  = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
-        fileName = './output/binary_sp.dat.c' + str(i)
+        fileName = './output/binary_sp2d.dat.c' + str(i)
         filecontents = readmyfile(fileName)
         sp_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
-        sp[:,a:b,:,:] = sp_i[:,0:nz_,:,:]
+        sp2d[:,a:b,:,:] = sp_i[:,0:nz_,:,:]
 
-    sp1d  = np.zeros((6,nz,ny,nx))
+    sp1dky  = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
-        fileName = './output/binary_sp1d.dat.c' + str(i)
+        fileName = './output/binary_sp1dky.dat.c' + str(i)
         filecontents = readmyfile(fileName)
         sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
-        sp1d[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
+        sp1dky[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
+
+    sp1dkx  = np.zeros((6,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_sp1dkx.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        sp1dkx[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
 
     rs = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
@@ -94,31 +103,29 @@ if snapshots:
 
 if fourier:
     # complex-valued arrays corresponding to the real-valued arrays
-    velc  = np.zeros((3,nz,ny,nx), dtype=complex)
-    vel2c = np.zeros((6,nz,ny,nx), dtype=complex)
-    rsc   = np.zeros((6,nz,ny,nx), dtype=complex)
-    spc   = np.zeros((6,nz,ny,nx), dtype=complex)
-    sp1dc   = np.zeros((6,nz,ny,nx), dtype=complex)
-    tauc  = np.zeros((6,nz,ny,nx), dtype=complex)
-    snapc = np.zeros((3,nz,ny,nx), dtype=complex)
+    # stored in kx,ky space
+    tauc    = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
+    snapc   = np.zeros((3,nz,ny,nx), dtype=complex) # (kx,ky,z)
+    # stored in kx space
+    # (w-grid velocities, the uv grid velocity is apparently kx,ky space)
+    velc    = np.zeros((3,nz,ny,nx), dtype=complex) # (kx, y,z) 
+    vel2c   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
+    rsc     = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
 
     # re-arrange real-valued arrays into complex-valued arrays
     for i in range(0,nx/2):
         b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
+        tauc[:,:,:,i]  =  tau[:,:,:,a] + 1j *  tau[:,:,:,b]        
+        snapc[:,:,:,i] = snap[:,:,:,a] + 1j * snap[:,:,:,b]
         velc[:,:,:,i]  =  vel[:,:,:,a] + 1j *  vel[:,:,:,b]
         vel2c[:,:,:,i] = vel2[:,:,:,a] + 1j * vel2[:,:,:,b]
         rsc[:,:,:,i]   =   rs[:,:,:,a] + 1j *   rs[:,:,:,b]
-        spc[:,:,:,i]   =   sp[:,:,:,a] + 1j *   sp[:,:,:,b]
-        sp1dc[:,:,:,i]   =   sp1d[:,:,:,a] + 1j *   sp1d[:,:,:,b]
-        snapc[:,:,:,i] = snap[:,:,:,a] + 1j * snap[:,:,:,b]
-        tauc[:,:,:,i]  =  tau[:,:,:,a] + 1j *  tau[:,:,:,b]
         if i > 0:
             velc[:,:,:,e] = np.conj(velc[:,:,:,i])
             vel2c[:,:,:,e] = np.conj(vel2c[:,:,:,i])
             rsc[:,:,:,e] = np.conj(rsc[:,:,:,i])
-            spc[:,:,:,e] = np.conj(spc[:,:,:,i])
-            #sp1dc[:,:,:,e] = np.conj(sp1dc[:,:,:,i])
 
+    # go from kx,ky space to kx space
     for v in range(0,3):
         for i in range(0,nx/2):
             for k in range(0,nz):
@@ -131,34 +138,50 @@ if fourier:
         snapc[:,:,:,e] = np.conj(snapc[:,:,:,i])
         tauc[:,:,:,e] = np.conj(tauc[:,:,:,i])
 
+    # go from kx space to x space
+    tauci = np.zeros((6,nz,ny,nx),dtype=complex)
+    snapci = np.zeros((3,nz,ny,nx),dtype=complex)
     velci = np.zeros((3,nz,ny,nx),dtype=complex)
     vel2ci = np.zeros((6,nz,ny,nx),dtype=complex)
     rsci = np.zeros((6,nz,ny,nx),dtype=complex)
-    snapci = np.zeros((3,nz,ny,nx),dtype=complex)
-    tauci = np.zeros((6,nz,ny,nx),dtype=complex)
     for v in range(0,3):
         for k in range(0,nz):
             for j in range(0,ny):
+                tauci[v,k,j,:] = np.fft.ifft(tauc[v,k,j,:]) * nx
+                tauci[v+3,k,j,:] = np.fft.ifft(tauc[v+3,k,j,:]) * nx
+                snapci[v,k,j,:] = np.fft.ifft(snapc[v,k,j,:]) * nx
                 velci[v,k,j,:] = np.fft.ifft(velc[v,k,j,:]) * nx
                 vel2ci[v,k,j,:] = np.fft.ifft(vel2c[v,k,j,:]) * nx
                 vel2ci[v+3,k,j,:] = np.fft.ifft(vel2c[v+3,k,j,:]) * nx
                 rsci[v,k,j,:] = np.fft.ifft(rsc[v,k,j,:]) * nx
                 rsci[v+3,k,j,:] = np.fft.ifft(rsc[v+3,k,j,:]) * nx
-                snapci[v,k,j,:] = np.fft.ifft(snapc[v,k,j,:]) * nx
-                tauci[v,k,j,:] = np.fft.ifft(tauc[v,k,j,:]) * nx
-                tauci[v+3,k,j,:] = np.fft.ifft(tauc[v+3,k,j,:]) * nx
 
     # clean up and rename
+    tau = np.real(tauci)
+    snap = np.real(snapci)
     vel = np.real(velci)
     vel2 = np.real(vel2ci)
     rs = np.real(rsci)
-    sp = np.real(spc)
-    sp1d = np.real(sp1dc)
-    snap = np.real(snapci)
-    tau = np.real(tauci)
 
 else:
     print ">>>> Not in Fourier mode"
+
+#if spectra_jb:
+#    # complex-valued arrays corresponding to the real-valued arrays
+#    sp2dc   = np.zeros((6,nz,ny,nx), dtype=complex)  # (kx,ky,z) space
+#    sp1dkyc = np.zeros((6,nz,ny,nx), dtype=complex)  # ( x,ky,z) space
+#    sp1dkxc = np.zeros((6,nz,ny,nx), dtype=complex)  # (kx, y,z) space
+
+#    # re-arrange real-valued arrays into complex-valued arrays
+#    for i in range(0,nx/2):
+#        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
+#        sp2dc[:,:,:,i]  =  sp2d[:,:,:,a] + 1j *  sp2d[:,:,:,b]        
+#        sp1dkyc[:,:,:,i]  =  sp1dky[:,:,:,a] + 1j *  sp1dky[:,:,:,b]        
+#        sp1dkxc[:,:,:,i]  =  sp1dkx[:,:,:,a] + 1j *  sp1dkx[:,:,:,b]
+#        if i > 0:
+#            sp2dc[:,:,:,e] = np.conj(sp2dc[:,:,:,i])
+#            sp1dkxc[:,:,:,e] = np.conj(sp1dkxc[:,:,:,i])
+
 
 # rename data
 u    =  vel[0,:,:,:]
@@ -176,18 +199,24 @@ rs33 =   rs[2,:,:,:]
 rs13 =   rs[3,:,:,:] 
 rs23 =   rs[4,:,:,:] 
 rs12 =   rs[5,:,:,:]
-sp11 =   sp[0,:,:,:] 
-sp22 =   sp[1,:,:,:] 
-sp33 =   sp[2,:,:,:]
-sp13 =   sp[3,:,:,:] 
-sp23 =   sp[4,:,:,:] 
-sp12 =   sp[5,:,:,:]
-sp11_1d =   sp1d[0,:,:,:] 
-sp22_1d =   sp1d[1,:,:,:] 
-sp33_1d =   sp1d[2,:,:,:]
-sp13_1d =   sp1d[3,:,:,:] 
-sp23_1d =   sp1d[4,:,:,:] 
-sp12_1d =   sp1d[5,:,:,:]
+sp2d_uu =   sp2d[0,:,:,:] 
+sp2d_vv =   sp2d[1,:,:,:] 
+sp2d_ww =   sp2d[2,:,:,:]
+sp2d_uw =   sp2d[3,:,:,:] 
+sp2d_vw =   sp2d[4,:,:,:] 
+sp2d_uv =   sp2d[5,:,:,:]
+sp1dky_uu =   sp1dky[0,:,:,:] 
+sp1dky_vv =   sp1dky[1,:,:,:] 
+sp1dky_ww =   sp1dky[2,:,:,:]
+sp1dky_uw =   sp1dky[3,:,:,:] 
+sp1dky_vw =   sp1dky[4,:,:,:] 
+sp1dky_uv =   sp1dky[5,:,:,:]
+sp1dkx_uu =   sp1dkx[0,:,:,:] 
+sp1dkx_vv =   sp1dkx[1,:,:,:] 
+sp1dkx_ww =   sp1dkx[2,:,:,:]
+sp1dkx_uw =   sp1dkx[3,:,:,:] 
+sp1dkx_vw =   sp1dkx[4,:,:,:] 
+sp1dkx_uv =   sp1dkx[5,:,:,:]
 txx  =  tau[0,:,:,:] 
 txy  =  tau[1,:,:,:] 
 tyy  =  tau[2,:,:,:]
@@ -261,18 +290,24 @@ np.save(datdir+'rs33', rs33)
 np.save(datdir+'rs13', rs13)
 np.save(datdir+'rs23', rs23)
 np.save(datdir+'rs12', rs12)
-np.save(datdir+'sp11', sp11)
-np.save(datdir+'sp22', sp22)
-np.save(datdir+'sp33', sp33)
-np.save(datdir+'sp13', sp13)
-np.save(datdir+'sp23', sp23)
-np.save(datdir+'sp12', sp12)
-np.save(datdir+'sp11_1d', sp11_1d)
-np.save(datdir+'sp22_1d', sp22_1d)
-np.save(datdir+'sp33_1d', sp33_1d)
-np.save(datdir+'sp13_1d', sp13_1d)
-np.save(datdir+'sp23_1d', sp23_1d)
-np.save(datdir+'sp12_1d', sp12_1d)
+np.save(datdir+'sp2d_uu', sp2d_uu)
+np.save(datdir+'sp2d_vv', sp2d_vv)
+np.save(datdir+'sp2d_ww', sp2d_ww)
+np.save(datdir+'sp2d_uw', sp2d_uw)
+np.save(datdir+'sp2d_vw', sp2d_vw)
+np.save(datdir+'sp2d_uv', sp2d_uv)
+np.save(datdir+'sp1dky_uu', sp1dky_uu)
+np.save(datdir+'sp1dky_vv', sp1dky_vv)
+np.save(datdir+'sp1dky_ww', sp1dky_ww)
+np.save(datdir+'sp1dky_uw', sp1dky_uw)
+np.save(datdir+'sp1dky_vw', sp1dky_vw)
+np.save(datdir+'sp1dky_uv', sp1dky_uv)
+np.save(datdir+'sp1dkx_uu', sp1dkx_uu)
+np.save(datdir+'sp1dkx_vv', sp1dkx_vv)
+np.save(datdir+'sp1dkx_ww', sp1dkx_ww)
+np.save(datdir+'sp1dkx_uw', sp1dkx_uw)
+np.save(datdir+'sp1dkx_vw', sp1dkx_vw)
+np.save(datdir+'sp1dkx_uv', sp1dkx_uv)
 np.save(datdir+'txx', txx)
 np.save(datdir+'tyy', tyy)
 np.save(datdir+'tzz', tzz)

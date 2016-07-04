@@ -42,9 +42,9 @@ kx_vec=[0]
 
 vel_avg_plot = 0;
 rs_plot      = 1;
-sp2d_plot    = 0;
-sp1dky_plot  = 0;
-sp1dkx_plot  = 0;
+sp2d_plot    = 1;
+sp1dky_plot  = 1;
+sp1dkx_plot  = 1;
 spanSpec_plot= 0;
 vel2_rs_plot = 1;
 tau_plot     = 0;
@@ -599,7 +599,10 @@ if rs_plot:
             plt.plot(z,rs11Mean,'^',label='rs11')
             plt.plot(z,uuMean,'s',label='uuMean')
             comp11 = np.mean(sp11_1d[:,:,:], axis=2)
-            comp11 = np.sum(comp11[:,0:], axis=1)
+            comp11_ = comp11[:,0:ny/2]
+            comp11_[:,1:ny/2] = comp11_[:,1:ny/2] + comp11_[:,1:ny/2]
+            comp11 = np.sum(comp11_[:,0:], axis=1)
+            #comp11 = np.sum(comp11[:,0:], axis=1)
             plt.plot(z[1:], comp11[1:], 'o', label='spect')
             plt.legend()
             mySaveFig('comp11', 0)
@@ -610,18 +613,21 @@ if rs_plot:
             plt.plot(z,rs22Mean,'^',label='rs22')
             plt.plot(z,vvMean,'s',label='vvMean')
             comp22 = np.mean(sp22_1d[:,:,:], axis=2)
-            comp22 = np.sum(comp22[:,0:], axis=1)
+            comp22_ = comp22[:,0:ny/2]
+            comp22_[:,1:ny/2] = comp22_[:,1:ny/2] + comp22_[:,1:ny/2]
+            comp22 = np.sum(comp22_[:,0:], axis=1)
             plt.plot(z[1:], comp22[1:], 'o', label='spect')
             plt.legend()
             mySaveFig('comp22', 0)
-
             
             sp33_1d = np.load(datdir+'sp1dky_ww.npy')
             fig = plt.figure()
             plt.plot(z,rs33Mean,'^',label='rs33')
             plt.plot(z,wwMean,'s',label='wwMean')
             comp33 = np.mean(sp33_1d[:,:,:], axis=2)
-            comp33 = np.sum(comp33[:,0:], axis=1)
+            comp33_ = comp33[:,0:ny/2]
+            comp33_[:,1:ny/2] = comp33_[:,1:ny/2] + comp33_[:,1:ny/2]
+            comp33 = np.sum(comp33_[:,0:], axis=1)
             plt.plot(z[1:], comp33[1:], 'o', label='spect')
             plt.legend()
             mySaveFig('comp33', 0)

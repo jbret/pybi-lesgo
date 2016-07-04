@@ -172,7 +172,7 @@ else:
 #    sp1dkyc = np.zeros((6,nz,ny,nx), dtype=complex)  # ( x,ky,z) space
 #    sp1dkxc = np.zeros((6,nz,ny,nx), dtype=complex)  # (kx, y,z) space
 
-#    # re-arrange real-valued arrays into complex-valued arrays
+    # re-arrange real-valued arrays into complex-valued arrays
 #    for i in range(0,nx/2):
 #        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
 #        sp2dc[:,:,:,i]  =  sp2d[:,:,:,a] + 1j *  sp2d[:,:,:,b]        

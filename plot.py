@@ -13,45 +13,45 @@ from subprocess import check_output
 from read_lesgo_bin import readmyfile
 from os import getcwd, system
 
+RNL_branch = 1;    devel_branch = 0;
+
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-dummy = check_output(["grep", 'nx, ny', "./lesgo_param.out"])
+if RNL_branch:
+    lesgo_param_loc = "./lesgo_param.out"
+elif devel_branch:
+    lesgo_param_loc = "./output/lesgo_param.out"
+else:
+    print "Must specify location of lesgo_param.out"
+
+dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
 nz = nz - 1;
 nz_ = nz2 - 1;
-print nx, ny, nz, nz2, nz_
-
-dummy = check_output(["grep", 'nproc', "./lesgo_param.out"])
-dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
-nproc = dummyStr[0]
-print nproc
-
-#dummy = check_output(["grep", 'L_x', "./lesgo_param.out"])
-#dummyStr = [float(s) for s in dummy.split() if s.isdigit()]
-#a = re.findall(r"\d*([^]+)",dummyStr)
-#print a
+print "nx  =", nx
+print "ny  =", ny
+print "nz  =", nz
+print "nz2 =", nz2
+print "nz_ =", nz_
 
 Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
-#kx_vec=[0,4,8]
-#kx_vec=[0]
-#kx_vec=[0,1,2]
 
-vel_avg_plot = 1;
-rs_plot      = 1;
-sp2d_plot    = 1;
-sp1dky_plot  = 1;
-sp1dkx_plot  = 1;
-spanSpec_plot= 0;
-vel2_rs_plot = 1;
-tau_plot     = 1;
-snap_plot    = 0;  thisSnap = 5000;  # on uv-grid
-snap_plot_yz = 0;
-snap_plot_xy = 0;
-#fourier      = 1;
+vel_avg_plot  = 1;
+uXMean_plot   = 1;
+tau_plot      = 1;
+spanSpec_plot = 0;
+sp1dky_plot   = 1;
+sp1dkx_plot   = 1;
+sp2d_plot     = 1;
+rs_plot       = 1;
+vel2_rs_plot  = 1;
+snap_plot_xy  = 0;
+snap_plot_yz  = 0;
+snap_plot     = 0;  thisSnap = 5000;  # on uv-grid
 
 mkm = 0;   # reference DNS data from MKM 1999
 
@@ -107,6 +107,7 @@ if vel_avg_plot:
 
     mySaveFig('mvp_', 0)
 
+if uXMean_plot:
     scale = 3.0;
     fig = plt.figure(figsize=(scale*Ly,scale*Lz))
     Y, Z = np.meshgrid(y, z)
@@ -138,7 +139,8 @@ if tau_plot:
     fig = plt.figure()
     plt.plot(-1*rs13Mean, z, '-o', color='g', label = r'$[ -u^{\prime} w^{\prime}]$')
     plt.plot(-1*txzMean, z, '-o', color='r', label = r'$ [ -\tau_{xz} ] $')
-    plt.plot(-1*(rs13Mean + txzMean), z, '-s', color='k', markeredgewidth=1, markerfacecolor="None", label = r'$ \mathrm{sum} $')
+    plt.plot(-1*(rs13Mean + txzMean), z, '-s', color='k', markeredgewidth=1, 
+             markerfacecolor="None", label = r'$ \mathrm{sum} $')
     line = np.linspace(0,1,1000)
     plt.plot(line, 1+-1.0*line, '--', color='k')
     plt.plot(line, np.ones(len(line))*0.15, '--', color='k')
@@ -147,7 +149,6 @@ if tau_plot:
     plt.legend()
     plt.tight_layout()
     mySaveFig('tau_', 0)
-
 
 if spanSpec_plot:
     sp1dky_uu = np.load(datdir+'sp1dky_uu.npy')
@@ -192,7 +193,7 @@ if spanSpec_plot:
         plt.xlabel(r'$ k_y $'); plt.tight_layout()
         plt.legend(loc='lower left')
         #plt.ylim([])
-    mySaveFig('ky_spec', 0)
+    mySaveFig('spanSpec', 0)
 
 if sp1dky_plot:
     sp1dky_uu = np.load(datdir+'sp1dky_uu.npy')

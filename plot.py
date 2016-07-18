@@ -40,15 +40,15 @@ Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
 
-vel_avg_plot  = 1;
-uXMean_plot   = 1;
-tau_plot      = 1;
+vel_avg_plot  = 0;
+uXMean_plot   = 0;
+tau_plot      = 0;
 spanSpec_plot = 0;
-sp1dky_plot   = 1;
-sp1dkx_plot   = 1;
+sp1dky_plot   = 0;
+sp1dkx_plot   = 0;
 sp2d_plot     = 1;
-rs_plot       = 1;
-vel2_rs_plot  = 1;
+rs_plot       = 0;
+vel2_rs_plot  = 0;
 snap_plot_xy  = 0;
 snap_plot_yz  = 0;
 snap_plot     = 0;  thisSnap = 5000;  # on uv-grid
@@ -207,10 +207,8 @@ if sp1dky_plot:
     e33 = np.mean(sp1dky_ww[:,:,:], axis=2)
 
     ky = np.arange(0,ny/2)
-    #lamY = Ly / ky
-    lamY = ky
-
-    #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
+    lamY = Ly / ky
+    
     kyE11 = ky * e11[:,0:ny/2]
     kyE13 = ky * e13[:,0:ny/2]
     kyE22 = ky * e22[:,0:ny/2]
@@ -218,45 +216,84 @@ if sp1dky_plot:
 
     LAMY, Z = np.meshgrid(lamY[1:], z[1:])
 
+    xlab = '$ \lambda_y / \delta $';   ylab = '$ z / \delta $';   myFS = 18;
+    numLevs = 30;
+
     fig = plt.figure(figsize=(12,4))
+
     ax = fig.add_subplot(2,2,1)
-    cs = plt.contourf(LAMY, Z, kyE11[1:,1:]);
+    levels = np.linspace(np.min(kyE11), np.max(kyE11), numLevs);
+    cs = plt.contourf(LAMY, Z, kyE11[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
      
     ax = fig.add_subplot(2,2,2)
-    cs = plt.contourf(LAMY, Z, kyE11[1:,1:]);  
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    levels = np.linspace(np.min(kyE13), np.max(kyE13), numLevs);
+    cs = plt.contourf(LAMY, Z, kyE13[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{uw} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
-    cs = plt.contourf(LAMY, Z, e11[1:,1:ny/2]);  
+    levels = np.linspace(np.min(kyE22), np.max(kyE22), numLevs);
+    cs = plt.contourf(LAMY, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
-    cs = plt.contourf(LAMY, Z, e11[1:,1:ny/2]);  
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    levels = np.linspace(np.min(kyE33), np.max(kyE33), numLevs);
+    cs = plt.contourf(LAMY, Z, kyE33[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
 
-    mySaveFig('sp1dky_', 0)
+    mySaveFig('sp1dky_LAMY_', 0)
 
+    KY, Z = np.meshgrid(ky[1:], z[1:])
+
+    xlab = '$ \delta k_y $';   ylab = '$ z / \delta $';   myFS = 18;
+
+    fig = plt.figure(figsize=(12,4))
+
+    ax = fig.add_subplot(2,2,1)
+    levels = np.linspace(np.min(kyE11), np.max(kyE11), numLevs);
+    cs = plt.contourf(KY, Z, kyE11[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+     
+    ax = fig.add_subplot(2,2,2)
+    levels = np.linspace(np.min(kyE13), np.max(kyE13), numLevs);
+    cs = plt.contourf(KY, Z, kyE13[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{uw} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+    
+    ax = fig.add_subplot(2,2,3)
+    levels = np.linspace(np.min(kyE22), np.max(kyE22), numLevs);
+    cs = plt.contourf(KY, Z, kyE22[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    ax = fig.add_subplot(2,2,4)
+    levels = np.linspace(np.min(kyE33), np.max(kyE33), numLevs);
+    cs = plt.contourf(KY, Z, kyE33[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    mySaveFig('sp1dky_KY_', 0)
     
 if sp1dkx_plot:
     sp1dkx_uu = np.load(datdir+'sp1dkx_uu.npy')
@@ -270,10 +307,8 @@ if sp1dkx_plot:
     e33 = np.mean(sp1dkx_ww[:,:,:], axis=1)
 
     kx = np.arange(0,nx/2)
-    #lamX = Lx / kx
-    lamX = kx
-
-    #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
+    lamX = Lx / kx
+    
     kxE11 = kx * e11[:,0:nx/2]
     kxE13 = kx * e13[:,0:nx/2]
     kxE22 = kx * e22[:,0:nx/2]
@@ -281,44 +316,84 @@ if sp1dkx_plot:
 
     LAMX, Z = np.meshgrid(lamX[1:], z[1:])
 
+    xlab = '$ \lambda_x / \delta $';   ylab = '$ z / \delta $';   myFS = 18;
+    numLevs = 30;
+
     fig = plt.figure(figsize=(12,4))
+
     ax = fig.add_subplot(2,2,1)
-    cs = plt.contourf(LAMX, Z, kxE11[1:,1:]);
+    levels = np.linspace(np.min(kxE11), np.max(kxE11), numLevs);
+    cs = plt.contourf(LAMX, Z, kxE11[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
      
     ax = fig.add_subplot(2,2,2)
-    cs = plt.contourf(LAMX, Z, kxE11[1:,1:]);  
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    levels = np.linspace(np.min(kxE13), np.max(kxE13), numLevs);
+    cs = plt.contourf(LAMX, Z, kxE13[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{uw} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
-    cs = plt.contourf(LAMX, Z, e11[1:,1:nx/2]);  
+    levels = np.linspace(np.min(kxE22), np.max(kxE22), numLevs);
+    cs = plt.contourf(LAMX, Z, kxE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{vv} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
-    cs = plt.contourf(LAMX, Z, e11[1:,1:nx/2]);  
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu} / u_{\tau}^2 $')
-    plt.tight_layout()
+    levels = np.linspace(np.min(kxE33), np.max(kxE33), numLevs);
+    cs = plt.contourf(LAMX, Z, kxE33[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{ww} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
 
-    mySaveFig('sp1dkx_', 0)
+    mySaveFig('sp1dkx_LAMX_', 0)
+
+    KX, Z = np.meshgrid(kx[1:], z[1:])
+
+    xlab = '$ \delta k_x $';   ylab = '$ z / \delta $';   myFS = 18;
+
+    fig = plt.figure(figsize=(12,4))
+
+    ax = fig.add_subplot(2,2,1)
+    levels = np.linspace(np.min(kxE11), np.max(kxE11), numLevs);
+    cs = plt.contourf(KX, Z, kxE11[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+     
+    ax = fig.add_subplot(2,2,2)
+    levels = np.linspace(np.min(kxE13), np.max(kxE13), numLevs);
+    cs = plt.contourf(KX, Z, kxE13[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{uw} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+    
+    ax = fig.add_subplot(2,2,3)
+    levels = np.linspace(np.min(kxE22), np.max(kxE22), numLevs);
+    cs = plt.contourf(KX, Z, kxE22[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{vv} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    ax = fig.add_subplot(2,2,4)
+    levels = np.linspace(np.min(kxE33), np.max(kxE33), numLevs);
+    cs = plt.contourf(KX, Z, kxE33[1:,1:], levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$k_x E_{ww} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    mySaveFig('sp1dkx_KX_', 0)
     
 if sp2d_plot:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')
@@ -331,106 +406,100 @@ if sp2d_plot:
 
     kx = np.arange(0,nx/2)
     ky = np.arange(0,ny/2)
-    #lamY = Ly / ky
-    lamY = ky
-
-    #levels=[0.0,0.05,0.1,0.15,0.2,0.25,0.3]
-    #sp11sum1 = np.sum(sp2d_uu[:,:,1:],axis=2)  # sum over kx
-    #kyE11 = ky * sp11sum1[:,0:ny/2]
-
-    #sp13sum1 = np.sum(sp2d_uw[:,:,1:],axis=2)  # sum over kx
-    #kyE13 = ky * sp13sum1[:,0:ny/2]
-
-    #sp22sum1 = np.sum(sp2d_vv[:,:,1:],axis=2)  # sum over kx
-    #kyE22 = ky * sp22sum1[:,0:ny/2]
-
-    #sp33sum1 = np.sum(sp2d_ww[:,:,1:],axis=2)  # sum over kx
-    #kyE33 = ky * sp33sum1[:,0:ny/2]
-
+    lamY = Ly / ky
+    lamX = Lx / kx
+    
     LAMY, Z = np.meshgrid(lamY[1:], z[1:])
     KX, KY = np.meshgrid(kx[1:], ky[1:])
 
     fig = plt.figure(figsize=(12,8))
+    xlab = '$ \lambda_y / \delta $';    ylab = '$ z / \delta $';    myFS = 18
+    numLevs = 30;
+
     ax = fig.add_subplot(2,2,1)
-    #cs = plt.contourf(LAMY, Z, kyE11[1:,1:]);
-    cs = plt.contourf(LAMY, Z, suu_sum[1:,1:]);
+    levels = np.linspace(np.min(suu_sum), np.max(suu_sum), numLevs)
+    cs = plt.contourf(LAMY, Z, suu_sum[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
+    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$E_{uu} all k_x$')
-    plt.tight_layout()
+    cbar = plt.colorbar();   plt.tight_layout()
 
     ax = fig.add_subplot(2,2,2)
-    #cs = plt.contourf(LAMY, Z, kyE13[1:,1:]); 
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,0]); 
+    levels = np.linspace(np.min(suu[:,:,0]), np.max(suu[:,:,0]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,0], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu}, k_x=0$')
-    plt.tight_layout()
+    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$E_{uu}, k_x = 0$')
+    cbar = plt.colorbar();   plt.tight_layout()
      
     ax = fig.add_subplot(2,2,3)
-    #cs = plt.contourf(LAMY, Z, kyE22[1:,1:]);  
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,9]);
+    levels = np.linspace(np.min(suu[:,:,4]), np.max(suu[:,:,4]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,4], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu}, k_x=8$')
-    plt.tight_layout()
+    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$E_{uu}, k_x = 4$')
+    cbar = plt.colorbar();   plt.tight_layout()
+
     
     ax = fig.add_subplot(2,2,4)
-    #cs = plt.contourf(LAMY, Z, kyE33[1:,1:]);
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,17]);  
+    levels = np.linspace(np.min(suu[:,:,8]), np.max(suu[:,:,8]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,8], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_y / \delta $', fontsize=18);
-    plt.ylabel(r'$ z / \delta $', fontsize=18); 
-    plt.title(r'$E_{uu}, k_x=16$')
-    plt.tight_layout()
+    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.title(r'$E_{uu}, k_x = 8$')
+    cbar = plt.colorbar();   plt.tight_layout()
 
     mySaveFig('sp2d_vert', 0)
 
     # horizontal >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     fig = plt.figure(figsize=(12,8))
+
+    xlab = '$ k_x / \delta $';    ylab = '$ k_y / \delta $';    myFS = 18;
+    numLevs = 30;
+
+    #kx = np.arange(0,nx/2)
+    #ky = np.arange(0,ny/2)
+    kx = np.arange(0,5)
+    ky = np.arange(0,20)
+    KX, KY = np.meshgrid(kx[1:], ky[1:])
+
+    slice1 = sp2d_uu[4,1:20,1:5]
+    slice2 = sp2d_uu[8,1:20,1:5]
+    slice3 = sp2d_uu[16,1:20,1:5]
+    slice4 = sp2d_uu[32,1:20,1:5]
+
     ax = fig.add_subplot(2,2,1)
-    cs = plt.contourf(KY[1:20,1:5], KX[1:20,1:5], suu[4,1:20,1:5]);
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ k_y / \delta $', fontsize=18); 
+    levels = np.linspace(np.min(slice1), np.max(slice1), numLevs)
+    cs = plt.contourf(KX, KY, slice1, levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
     plt.title(r'$E_{uu}$')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,2)
-    cs = plt.contourf(KY, KX, suu[8,1:,1:]);
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ k_y / \delta $', fontsize=18); 
+    levels = np.linspace(np.min(slice2), np.max(slice2), numLevs)
+    cs = plt.contourf(KX, KY, slice2, levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
     plt.title(r'$E_{uu}$')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
      
     ax = fig.add_subplot(2,2,3)
-    cs = plt.contourf(KY, KX, suu[20,1:,1:]);
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ k_y / \delta $', fontsize=18); 
+    levels = np.linspace(np.min(slice3), np.max(slice3), numLevs)
+    cs = plt.contourf(KX, KY, slice3, levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
     plt.title(r'$E_{uu}$')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,4)
-    cs = plt.contourf(KY, KX, suu[44,1:,1:]);
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    cbar = plt.colorbar()
-    plt.xlabel(r'$ k_x / \delta $', fontsize=18);
-    plt.ylabel(r'$ k_y / \delta $', fontsize=18); 
+    levels = np.linspace(np.min(slice4), np.max(slice4), numLevs)
+    cs = plt.contourf(KX, KY, slice4, levels);
+    ax.set_xscale('log');  ax.set_yscale('log')
+    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
     plt.title(r'$E_{uu}$')
-    plt.tight_layout()
+    cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp2d_horiz', 0)
     

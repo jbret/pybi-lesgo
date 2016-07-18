@@ -8,11 +8,22 @@ from subprocess import check_output
 from read_lesgo_bin import readmyfile
 from os import getcwd, system
 
+RNL_branch = 1;    devel_branch = 0;
+avg        = 1;
+snapshots  = 0;    thisSnap = 5000;
+fourier    = 0;
+spectra_jb = 1;
+
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-#lesgo_param_loc = "./output/lesgo_param.out"
-lesgo_param_loc = "./lesgo_param.out"
+if RNL_branch:
+    lesgo_param_loc = "./lesgo_param.out"
+elif devel_branch:
+    lesgo_param_loc = "./output/lesgo_param.out"
+else:
+    print "Must specify location of lesgo_param.out"
+
 dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
@@ -32,11 +43,6 @@ print "nproc =", nproc
 print "nx*ny*nz2*8*1 =", nx*ny*nz2*8*1
 print "nx*ny*nz2*8*3 =", nx*ny*nz2*8*3
 print "nx*ny*nz2*8*6 =", nx*ny*nz2*8*6
-
-avg        = 1;
-snapshots  = 0;    thisSnap = 5000;
-fourier    = 0;
-spectra_jb = 1;
 
 if avg:
     # neglect top point in each proc except last proc

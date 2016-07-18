@@ -11,26 +11,31 @@ from os import getcwd, system
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-dummy = check_output(["grep", 'nx, ny', "./lesgo_param.out"])
+#lesgo_param_loc = "./output/lesgo_param.out"
+lesgo_param_loc = "./lesgo_param.out"
+dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
 nz = nz - 1;
 nz_ = nz2 - 1;
-print nx, ny, nz, nz2, nz_
+print "nx  =", nx
+print "ny  =", ny
+print "nz  =", nz
+print "nz2 =", nz2
+print "nz_ =", nz_
 
-dummy = check_output(["grep", 'nproc', "./lesgo_param.out"])
+dummy = check_output(["grep", 'nproc', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nproc = dummyStr[0]
-print nproc
+print "nproc =", nproc
 
-#dummy = check_output(["grep", 'L_x', "./lesgo_param.out"])
-#dummyStr = [float(s) for s in dummy.split() if s.isdigit()]
-#a = re.findall(r"\d*([^]+)",dummyStr)
-#print a
+print "nx*ny*nz2*8*1 =", nx*ny*nz2*8*1
+print "nx*ny*nz2*8*3 =", nx*ny*nz2*8*3
+print "nx*ny*nz2*8*6 =", nx*ny*nz2*8*6
 
-avg       = 1;
-snapshots = 0;  thisSnap = 5000;
-fourier   = 0;
+avg        = 1;
+snapshots  = 0;    thisSnap = 5000;
+fourier    = 0;
 spectra_jb = 1;
 
 if avg:
@@ -166,21 +171,38 @@ if fourier:
 else:
     print ">>>> Not in Fourier mode"
 
-#if spectra_jb:
-#    # complex-valued arrays corresponding to the real-valued arrays
-#    sp2dc   = np.zeros((6,nz,ny,nx), dtype=complex)  # (kx,ky,z) space
-#    sp1dkyc = np.zeros((6,nz,ny,nx), dtype=complex)  # ( x,ky,z) space
-#    sp1dkxc = np.zeros((6,nz,ny,nx), dtype=complex)  # (kx, y,z) space
+if spectra_jb:
+    # complex-valued arrays corresponding to the real-valued arrays
+    # stored in (kx,ky) space
+    sp2dc   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
+    sp2dci  = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
+    # stored in (kx) space
+    sp1dkxc   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
 
     # re-arrange real-valued arrays into complex-valued arrays
-#    for i in range(0,nx/2):
-#        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
-#        sp2dc[:,:,:,i]  =  sp2d[:,:,:,a] + 1j *  sp2d[:,:,:,b]        
-#        sp1dkyc[:,:,:,i]  =  sp1dky[:,:,:,a] + 1j *  sp1dky[:,:,:,b]        
-#        sp1dkxc[:,:,:,i]  =  sp1dkx[:,:,:,a] + 1j *  sp1dkx[:,:,:,b]
-#        if i > 0:
-#            sp2dc[:,:,:,e] = np.conj(sp2dc[:,:,:,i])
-#            sp1dkxc[:,:,:,e] = np.conj(sp1dkxc[:,:,:,i])
+    for i in range(0,nx/2):
+        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
+        sp1dkxc[:,:,:,i]  =  sp1dkx[:,:,:,a] + 1j * sp1dkx[:,:,:,b]
+        sp2dc[:,:,:,i]    =  sp2d[:,:,:,a]   + 1j * sp2d[:,:,:,b]
+
+    # go from kx,ky space to kx space
+    #for v in range(0,6):
+    #    for i in range(0,nx/2):
+    #        for k in range(0,nz):
+    #            sp2dci[v,k,:,i] = np.fft.ifft(sp2dc[v,k,:,i]) * ny
+    
+    #for i in range(1,nx/2):
+    #    e = nx-i;  #print 'i,e : ', i,e
+    #    sp2dci[:,:,:,e] = np.conj(sp2dci[:,:,:,i])
+
+    # clean up and rename
+    #snap = np.real(snapci)
+    sp1dkx = np.real(sp1dkxc)
+    sp2d   = np.real(sp2dc)
+    
+else:
+    print ">>>> No spectra_jb"
+
 
 
 # rename data

@@ -8,7 +8,9 @@ import numpy as np
 import sys
 
 print "Endianness: ", sys.byteorder
-def readmyfile(filename, bytes=8, endian='>d'):
+# little-endian: <
+# big-endian: >
+def readmyfile(filename, bytes=8, endian='<d'):
     fileSize = os.path.getsize(filename)
     print "File size     : ", fileSize
     #print "3*nx*ny*nz2*8 : ", 3*nx*ny*nz2*8

@@ -8,60 +8,81 @@ from subprocess import check_output
 from read_lesgo_bin import readmyfile
 from os import getcwd, system
 
-RNL_branch = 1;    devel_branch = 0;
-avg        = 1;
-snapshots  = 0;    thisSnap = 5000;
-fourier    = 0;
-spectra_jb = 1;
-
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-if RNL_branch:
-    lesgo_param_loc = "./lesgo_param.out"
-elif devel_branch:
-    lesgo_param_loc = "./output/lesgo_param.out"
-else:
-    print "Must specify location of lesgo_param.out"
-
+lesgo_param_loc = "./output/lesgo_param.out"
 dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
 nz = nz - 1;
 nz_ = nz2 - 1;
-print "nx  =", nx
-print "ny  =", ny
-print "nz  =", nz
-print "nz2 =", nz2
-print "nz_ =", nz_
+print nx, ny, nz, nz2, nz_
 
 dummy = check_output(["grep", 'nproc', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nproc = dummyStr[0]
-print "nproc =", nproc
+print nproc
 
 print "nx*ny*nz2*8*1 =", nx*ny*nz2*8*1
 print "nx*ny*nz2*8*3 =", nx*ny*nz2*8*3
 print "nx*ny*nz2*8*6 =", nx*ny*nz2*8*6
+
+#dummy = check_output(["grep", 'L_x', "./lesgo_param.out"])
+#dummyStr = [float(s) for s in dummy.split() if s.isdigit()]
+#a = re.findall(r"\d*([^]+)",dummyStr)
+#print a
+
+avg       = 1;
+spectra   = 0;
+snapshots = 0;  thisSnap = 5000;
+fourier   = 0;
+spectra_jb = 0;
 
 if avg:
     # neglect top point in each proc except last proc
     # remember, 0:8 does not grab the point at index 8, just indices 0-7
     vel  = np.zeros((3,nz,ny,nx))
     for i in range(0, nproc):
-        fileName = './output/binary_vel_avg.dat.c' + str(i)
+        fileName = './output/veluv_avg.c' + str(i) + '.bin'
         filecontents = readmyfile(fileName)
         vel_i = np.reshape(filecontents, (3,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
         vel[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
 
+    velw  = np.zeros((1,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/velw_avg.c' + str(i) + '.bin'
+        filecontents = readmyfile(fileName)
+        vel_i = np.reshape(filecontents, (1,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        velw[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
+
     vel2  = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
-        fileName = './output/binary_vel2_avg.dat.c' + str(i)
+        fileName = './output/vel2_avg.c' + str(i) + '.bin'
         filecontents = readmyfile(fileName)
         vel_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
         vel2[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
+
+    rs = np.zeros((6,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/rs.c' + str(i) + '.bin'
+        filecontents = readmyfile(fileName)
+        rs_i = np.reshape(filecontents, (6,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        rs[:,a:b,:,:] = rs_i[:,0:nz_,:,:]
+
+    tau = np.zeros((6,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/tau_avg.c' + str(i) + '.bin'
+        filecontents = readmyfile(fileName)
+        tau_i = np.reshape(filecontents, (6,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
+
+if spectra:
 
     sp2d  = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
@@ -86,22 +107,6 @@ if avg:
         sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
         sp1dkx[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
-
-    rs = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_rs.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        rs_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        rs[:,a:b,:,:] = rs_i[:,0:nz_,:,:]
-
-    tau = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_tau_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        tau_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
 
 snap  = np.zeros((3,nz,ny,nx))
 if snapshots:
@@ -210,11 +215,19 @@ else:
     print ">>>> No spectra_jb"
 
 
+# zero at the wall
+vel[:,0,:,:] = 0
+vel2[:,0,:,:] = 0
+rs[:,0,:,:] = 0
+
+
+
 
 # rename data
 u    =  vel[0,:,:,:]
 v    =  vel[1,:,:,:]
 w    =  vel[2,:,:,:]
+w_w  =  velw[0,:,:,:]
 uu   = vel2[0,:,:,:] 
 vv   = vel2[1,:,:,:] 
 ww   = vel2[2,:,:,:]
@@ -227,24 +240,24 @@ rs33 =   rs[2,:,:,:]
 rs13 =   rs[3,:,:,:] 
 rs23 =   rs[4,:,:,:] 
 rs12 =   rs[5,:,:,:]
-sp2d_uu =   sp2d[0,:,:,:] 
-sp2d_vv =   sp2d[1,:,:,:] 
-sp2d_ww =   sp2d[2,:,:,:]
-sp2d_uw =   sp2d[3,:,:,:] 
-sp2d_vw =   sp2d[4,:,:,:] 
-sp2d_uv =   sp2d[5,:,:,:]
-sp1dky_uu =   sp1dky[0,:,:,:] 
-sp1dky_vv =   sp1dky[1,:,:,:] 
-sp1dky_ww =   sp1dky[2,:,:,:]
-sp1dky_uw =   sp1dky[3,:,:,:] 
-sp1dky_vw =   sp1dky[4,:,:,:] 
-sp1dky_uv =   sp1dky[5,:,:,:]
-sp1dkx_uu =   sp1dkx[0,:,:,:] 
-sp1dkx_vv =   sp1dkx[1,:,:,:] 
-sp1dkx_ww =   sp1dkx[2,:,:,:]
-sp1dkx_uw =   sp1dkx[3,:,:,:] 
-sp1dkx_vw =   sp1dkx[4,:,:,:] 
-sp1dkx_uv =   sp1dkx[5,:,:,:]
+#sp2d_uu =   sp2d[0,:,:,:] 
+#sp2d_vv =   sp2d[1,:,:,:] 
+#sp2d_ww =   sp2d[2,:,:,:]
+#sp2d_uw =   sp2d[3,:,:,:] 
+#sp2d_vw =   sp2d[4,:,:,:] 
+#sp2d_uv =   sp2d[5,:,:,:]
+#sp1dky_uu =   sp1dky[0,:,:,:] 
+#sp1dky_vv =   sp1dky[1,:,:,:] 
+#sp1dky_ww =   sp1dky[2,:,:,:]
+#sp1dky_uw =   sp1dky[3,:,:,:] 
+#sp1dky_vw =   sp1dky[4,:,:,:] 
+#sp1dky_uv =   sp1dky[5,:,:,:]
+#sp1dkx_uu =   sp1dkx[0,:,:,:] 
+#sp1dkx_vv =   sp1dkx[1,:,:,:] 
+#sp1dkx_ww =   sp1dkx[2,:,:,:]
+#sp1dkx_uw =   sp1dkx[3,:,:,:] 
+#sp1dkx_vw =   sp1dkx[4,:,:,:] 
+#sp1dkx_uv =   sp1dkx[5,:,:,:]
 txx  =  tau[0,:,:,:] 
 txy  =  tau[1,:,:,:] 
 tyy  =  tau[2,:,:,:]
@@ -306,6 +319,7 @@ np.save(datdir+'uvMean', uvMean)
 np.save(datdir+'u', u)
 np.save(datdir+'v', v)
 np.save(datdir+'w', w)
+np.save(datdir+'w_w', w_w)
 np.save(datdir+'uu', uu)
 np.save(datdir+'vv', vv)
 np.save(datdir+'ww', ww)
@@ -318,24 +332,24 @@ np.save(datdir+'rs33', rs33)
 np.save(datdir+'rs13', rs13)
 np.save(datdir+'rs23', rs23)
 np.save(datdir+'rs12', rs12)
-np.save(datdir+'sp2d_uu', sp2d_uu)
-np.save(datdir+'sp2d_vv', sp2d_vv)
-np.save(datdir+'sp2d_ww', sp2d_ww)
-np.save(datdir+'sp2d_uw', sp2d_uw)
-np.save(datdir+'sp2d_vw', sp2d_vw)
-np.save(datdir+'sp2d_uv', sp2d_uv)
-np.save(datdir+'sp1dky_uu', sp1dky_uu)
-np.save(datdir+'sp1dky_vv', sp1dky_vv)
-np.save(datdir+'sp1dky_ww', sp1dky_ww)
-np.save(datdir+'sp1dky_uw', sp1dky_uw)
-np.save(datdir+'sp1dky_vw', sp1dky_vw)
-np.save(datdir+'sp1dky_uv', sp1dky_uv)
-np.save(datdir+'sp1dkx_uu', sp1dkx_uu)
-np.save(datdir+'sp1dkx_vv', sp1dkx_vv)
-np.save(datdir+'sp1dkx_ww', sp1dkx_ww)
-np.save(datdir+'sp1dkx_uw', sp1dkx_uw)
-np.save(datdir+'sp1dkx_vw', sp1dkx_vw)
-np.save(datdir+'sp1dkx_uv', sp1dkx_uv)
+#np.save(datdir+'sp2d_uu', sp2d_uu)
+#np.save(datdir+'sp2d_vv', sp2d_vv)
+#np.save(datdir+'sp2d_ww', sp2d_ww)
+#np.save(datdir+'sp2d_uw', sp2d_uw)
+#np.save(datdir+'sp2d_vw', sp2d_vw)
+#np.save(datdir+'sp2d_uv', sp2d_uv)
+#np.save(datdir+'sp1dky_uu', sp1dky_uu)
+#np.save(datdir+'sp1dky_vv', sp1dky_vv)
+#np.save(datdir+'sp1dky_ww', sp1dky_ww)
+#np.save(datdir+'sp1dky_uw', sp1dky_uw)
+#np.save(datdir+'sp1dky_vw', sp1dky_vw)
+#np.save(datdir+'sp1dky_uv', sp1dky_uv)
+#np.save(datdir+'sp1dkx_uu', sp1dkx_uu)
+#np.save(datdir+'sp1dkx_vv', sp1dkx_vv)
+#np.save(datdir+'sp1dkx_ww', sp1dkx_ww)
+#np.save(datdir+'sp1dkx_uw', sp1dkx_uw)
+#np.save(datdir+'sp1dkx_vw', sp1dkx_vw)
+#np.save(datdir+'sp1dkx_uv', sp1dkx_uv)
 np.save(datdir+'txx', txx)
 np.save(datdir+'tyy', tyy)
 np.save(datdir+'tzz', tzz)

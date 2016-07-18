@@ -16,19 +16,20 @@ from os import getcwd, system
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-dummy = check_output(["grep", 'nx, ny', "./lesgo_param.out"])
+lesgo_param_loc = "./output/lesgo_param.out"
+dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
 nz = nz - 1;
 nz_ = nz2 - 1;
 print nx, ny, nz, nz2, nz_
 
-dummy = check_output(["grep", 'nproc', "./lesgo_param.out"])
+dummy = check_output(["grep", 'nproc', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nproc = dummyStr[0]
 print nproc
 
-#dummy = check_output(["grep", 'L_x', "./lesgo_param.out"])
+#dummy = check_output(["grep", 'L_x', lesgo_param_loc])
 #dummyStr = [float(s) for s in dummy.split() if s.isdigit()]
 #a = re.findall(r"\d*([^]+)",dummyStr)
 #print a
@@ -42,9 +43,9 @@ Lz = 1.0;
 
 vel_avg_plot = 1;
 rs_plot      = 1;
-sp2d_plot    = 1;
-sp1dky_plot  = 1;
-sp1dkx_plot  = 1;
+sp2d_plot    = 0;
+sp1dky_plot  = 0;
+sp1dkx_plot  = 0;
 spanSpec_plot= 0;
 vel2_rs_plot = 1;
 tau_plot     = 1;

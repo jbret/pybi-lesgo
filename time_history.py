@@ -5,7 +5,7 @@ Author: Joel Bretheim
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-#matplotlib.rc('text', usetex = True) # disable on MARCC (anaconda-python/2.7.10)
+matplotlib.rc('text', usetex = True) # disable on MARCC (anaconda-python/2.7.10)
 import matplotlib.pyplot as plt
 from cycler import cycler
 from os import getcwd

@@ -416,37 +416,40 @@ if sp2d_plot:
     xlab = '$ \lambda_y / \delta $';    ylab = '$ z / \delta $';    myFS = 18
     numLevs = 30;
 
+    m1 = 0;     m2 = 1;     m3 = 2;     m4 = 3;
+
     ax = fig.add_subplot(2,2,1)
-    levels = np.linspace(np.min(suu_sum), np.max(suu_sum), numLevs)
-    cs = plt.contourf(LAMY, Z, suu_sum[1:,1:], levels);
+    #cs = plt.contourf(LAMY, Z, suu_sum[1:,1:])
+    #levels = np.linspace(np.min(suu[:,:,m1]), np.max(suu[:,:,m1]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,m1]) #, levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$E_{uu} all k_x$')
+    #plt.title(r'$E_{uu} all k_x$')
+    plt.title( '$E_{uu}, k_x = '+str(m1)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
 
     ax = fig.add_subplot(2,2,2)
-    levels = np.linspace(np.min(suu[:,:,0]), np.max(suu[:,:,0]), numLevs)
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,0], levels);
+    levels = np.linspace(np.min(suu[:,:,m2]), np.max(suu[:,:,m2]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,m2], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$E_{uu}, k_x = 0$')
+    plt.title( '$E_{uu}, k_x = '+str(m2)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
      
     ax = fig.add_subplot(2,2,3)
-    levels = np.linspace(np.min(suu[:,:,4]), np.max(suu[:,:,4]), numLevs)
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,4], levels);
+    levels = np.linspace(np.min(suu[:,:,m3]), np.max(suu[:,:,m3]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,m3], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$E_{uu}, k_x = 4$')
+    plt.title( '$E_{uu}, k_x = '+str(m3)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
-
     
     ax = fig.add_subplot(2,2,4)
-    levels = np.linspace(np.min(suu[:,:,8]), np.max(suu[:,:,8]), numLevs)
-    cs = plt.contourf(LAMY, Z, suu[1:,1:,8], levels);
+    levels = np.linspace(np.min(suu[:,:,m4]), np.max(suu[:,:,m4]), numLevs)
+    cs = plt.contourf(LAMY, Z, suu[1:,1:,m4], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$E_{uu}, k_x = 8$')
+    plt.title( '$E_{uu}, k_x = '+str(m4)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
 
     mySaveFig('sp2d_vert', 0)
@@ -458,16 +461,16 @@ if sp2d_plot:
     xlab = '$ k_x / \delta $';    ylab = '$ k_y / \delta $';    myFS = 18;
     numLevs = 30;
 
-    #kx = np.arange(0,nx/2)
-    #ky = np.arange(0,ny/2)
-    kx = np.arange(0,5)
-    ky = np.arange(0,20)
+    kxMax = nx/2;  # 5
+    kyMax = ny/2;  # 20
+    kx = np.arange(0,kxMax)
+    ky = np.arange(0,kyMax)
     KX, KY = np.meshgrid(kx[1:], ky[1:])
 
-    slice1 = sp2d_uu[4,1:20,1:5]
-    slice2 = sp2d_uu[8,1:20,1:5]
-    slice3 = sp2d_uu[16,1:20,1:5]
-    slice4 = sp2d_uu[32,1:20,1:5]
+    slice1 = sp2d_uu[4,1:kyMax,1:kxMax]
+    slice2 = sp2d_uu[8,1:kyMax,1:kxMax]
+    slice3 = sp2d_uu[16,1:kyMax,1:kxMax]
+    slice4 = sp2d_uu[32,1:kyMax,1:kxMax]
 
     ax = fig.add_subplot(2,2,1)
     levels = np.linspace(np.min(slice1), np.max(slice1), numLevs)

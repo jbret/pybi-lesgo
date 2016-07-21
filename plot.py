@@ -5,7 +5,7 @@ Author: Joel Bretheim
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-matplotlib.rc('text', usetex = True)
+#matplotlib.rc('text', usetex = True)
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import re
@@ -43,17 +43,17 @@ Lz = 1.0;
 vel_avg_plot  = 0;
 uXMean_plot   = 0;
 tau_plot      = 0;
-spanSpec_plot = 0;
+spanSpec_plot = 1;
 sp1dky_plot   = 0;
 sp1dkx_plot   = 0;
-sp2d_plot     = 1;
+sp2d_plot     = 0;
 rs_plot       = 0;
 vel2_rs_plot  = 0;
 snap_plot_xy  = 0;
 snap_plot_yz  = 0;
 snap_plot     = 0;  thisSnap = 5000;  # on uv-grid
 
-mkm = 0;   # reference DNS data from MKM 1999
+mkm = 1;   # reference DNS data from MKM 1999
 
 z = np.linspace(0, Lz, nz, endpoint=True)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -85,14 +85,14 @@ plt.close("all")
 if vel_avg_plot:
     uMean = np.load(datdir+'uMean.npy')
     fig = plt.figure()
-    plt.semilogx(z, uMean, 'o')
-    #plt.semilogx(z/(1./180), uMean, 'o')
-    plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
-    #plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
-    plt.xlabel('$ z / H $', fontsize=18);
-    #plt.xlabel('$z^{+} $', fontsize=18);
+    #plt.semilogx(z, uMean, 'o')
+    plt.semilogx(z/(1./180), uMean, 'o')
+    #plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
+    plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
+    #plt.xlabel('$ z / H $', fontsize=18);
+    plt.xlabel('$z^{+} $', fontsize=18);
     plt.ylabel('$[\ u / u_*]$', fontsize=18); 
-    plt.xlim([.02 ,1.1])
+    #plt.xlim([.02 ,1.1])
     #plt.xlim([1, 1000])
     plt.text(.4,3,r'$ \kappa = 0.4,\ z_{0} = 10^{-4} $', fontsize=14)
 
@@ -152,43 +152,51 @@ if tau_plot:
 
 if spanSpec_plot:
     sp1dky_uu = np.load(datdir+'sp1dky_uu.npy')
-    sp1dky_uw = np.load(datdir+'sp1dky_uw.npy')
+    #sp1dky_uw = np.load(datdir+'sp1dky_uw.npy')
     sp1dky_vv = np.load(datdir+'sp1dky_vv.npy')
     sp1dky_ww = np.load(datdir+'sp1dky_ww.npy')
 
     spec11 = np.mean(sp1dky_uu[:,:,:], axis=2)
-    spec13 = np.mean(sp1dky_uw[:,:,:], axis=2)
+    #spec13 = np.mean(sp1dky_uw[:,:,:], axis=2)
     spec22 = np.mean(sp1dky_vv[:,:,:], axis=2)
     spec33 = np.mean(sp1dky_ww[:,:,:], axis=2)
 
-    #Euu180_0 = np.load('Euu180_0.npy')
-    #Euu180_1 = np.load('Euu180_1.npy')
-    #Euu180_2 = np.load('Euu180_2.npy')
-    #Euu180_3 = np.load('Euu180_3.npy')
-    #Evv180_0 = np.load('Evv180_0.npy')
-    #Evv180_1 = np.load('Evv180_1.npy')
-    #Evv180_2 = np.load('Evv180_2.npy')
-    #Evv180_3 = np.load('Evv180_3.npy')
-    #Eww180_0 = np.load('Eww180_0.npy')
-    #Eww180_1 = np.load('Eww180_1.npy')
-    #Eww180_2 = np.load('Eww180_2.npy')
-    #Eww180_3 = np.load('Eww180_3.npy')
+    Euu180_0z = np.load('Euu180_0z.npy')
+    Euu180_1z = np.load('Euu180_1z.npy')
+    Euu180_2z = np.load('Euu180_2z.npy')
+    Evv180_0z = np.load('Evv180_0z.npy')
+    Evv180_1z = np.load('Evv180_1z.npy')
+    Evv180_2z = np.load('Evv180_2z.npy')
+    Eww180_0z = np.load('Eww180_0z.npy')
+    Eww180_1z = np.load('Eww180_1z.npy')
+    Eww180_2z = np.load('Eww180_2z.npy')
 
-    heights = [ 5, 19, 30, 98 ];  numH = np.size(heights)
-    ky = np.arange(0,ny/2)
+    heights = [ 5, 30, 98 ];  numH = np.size(heights)
+    ky = np.arange(0,ny/2)/2.0
+    ky2 = np.arange(0,64)
     fig = plt.figure(figsize=(10,8))
     for j in range(0,numH):
         plt.subplot(1,numH,j+1)
         k = heights[j]
-        plt.loglog(ky[1:], spec11[k,1:ny/2],'o', label=r'$E_{uu}$')
-        plt.loglog(ky[1:], spec13[k,1:ny/2],'o', label=r'$E_{uw}$')
-        plt.loglog(ky[1:], spec22[k,1:ny/2],'o', label=r'$E_{vv}$')
-        plt.loglog(ky[1:], spec33[k,1:ny/2],'o', label=r'$E_{ww}$')
+        plt.loglog(ky[1:], spec11[k,1:ny/2]*np.pi,'-',color='red',label=r'$E_{uu}$')
+        #plt.loglog(ky[1:], spec13[k+1,1:ny/2],'-', label=r'$E_{uw}$')
+        plt.loglog(ky[1:], spec22[k,1:ny/2]*np.pi,'-',color='blue', label=r'$E_{vv}$')
+        plt.loglog(ky[1:], spec33[k,1:ny/2]*np.pi,'-',color='green', label=r'$E_{ww}$')
         if mkm:
-            plt.loglog(yp180[1:], Euu180_0,'o', label=r'$DNS, E_{uu}$')
-            plt.loglog(yp180[1:], Eww180_0,'o', label=r'$DNS, E_{vv}$')
-            plt.loglog(yp180[1:], Evv180_0,'o', label=r'$DNS, E_{ww}$')
-        
+            if j==0:
+                plt.loglog(ky2, Euu180_0z,'o',color='red', label=r'$DNS, E_{uu}$')
+                plt.loglog(ky2, Eww180_0z,'o',color='blue', label=r'$DNS, E_{vv}$')
+                plt.loglog(ky2, Evv180_0z,'o',color='green', label=r'$DNS, E_{ww}$')
+            if j==1:
+                plt.loglog(ky2, Euu180_1z,'o',color='red', label=r'$DNS, E_{uu}$')
+                plt.loglog(ky2, Eww180_1z,'o',color='blue', label=r'$DNS, E_{vv}$')
+                plt.loglog(ky2, Evv180_1z,'o',color='green', label=r'$DNS, E_{ww}$')
+            if j==2:
+                plt.loglog(ky2, Euu180_2z,'o',color='red', label=r'$DNS, E_{uu}$')
+                plt.loglog(ky2, Eww180_2z,'o',color='blue', label=r'$DNS, E_{vv}$')
+                plt.loglog(ky2, Evv180_2z,'o',color='green', label=r'$DNS, E_{ww}$')
+
+            
         plt.title(r'$ z^{+} = $'+str(heights[j]));
         plt.xlabel(r'$ k_y $'); plt.tight_layout()
         plt.legend(loc='lower left')

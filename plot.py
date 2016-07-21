@@ -40,20 +40,21 @@ Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
 
-vel_avg_plot  = 0;
-uXMean_plot   = 0;
-tau_plot      = 0;
-spanSpec_plot = 1;
-sp1dky_plot   = 0;
-sp1dkx_plot   = 0;
-sp2d_plot     = 0;
-rs_plot       = 0;
-vel2_rs_plot  = 0;
-snap_plot_xy  = 0;
-snap_plot_yz  = 0;
-snap_plot     = 0;  thisSnap = 5000;  # on uv-grid
+vel_avg_plot    = 0;
+uXMean_plot     = 0;
+tau_plot        = 0;
+spanSpec_plot   = 0;
+sp1dky_plot     = 0;
+sp1dkx_plot     = 0;
+sp2d_plot_vert  = 0;
+sp2d_plot_horiz = 1;
+rs_plot         = 0;
+vel2_rs_plot    = 0;
+snap_plot_xy    = 0;
+snap_plot_yz    = 0;
+snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
 
-mkm = 1;   # reference DNS data from MKM 1999
+mkm = 0;   # reference DNS data from MKM 1999
 
 z = np.linspace(0, Lz, nz, endpoint=True)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -403,7 +404,7 @@ if sp1dkx_plot:
 
     mySaveFig('sp1dkx_KX_', 0)
     
-if sp2d_plot:
+if sp2d_plot_vert:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')
     sp2d_uw = np.load(datdir+'sp2d_uw.npy')
     sp2d_vv = np.load(datdir+'sp2d_vv.npy')
@@ -462,57 +463,82 @@ if sp2d_plot:
 
     mySaveFig('sp2d_vert', 0)
 
-    # horizontal >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
-    fig = plt.figure(figsize=(12,8))
+if sp2d_plot_horiz:
+    sp2d_uu = np.load(datdir+'sp2d_uu.npy')
+    sp2d_uw = np.load(datdir+'sp2d_uw.npy')
+    sp2d_vv = np.load(datdir+'sp2d_vv.npy')
+    sp2d_ww = np.load(datdir+'sp2d_ww.npy')
 
     xlab = '$ k_x / \delta $';    ylab = '$ k_y / \delta $';    myFS = 18;
     numLevs = 30;
 
-    kxMax = nx/2;  # 5
-    kyMax = ny/2;  # 20
+    kxMax = nx/2;
+    kyMax = ny/2;
+    #kxMax =  5
+    #kyMax =  20
     kx = np.arange(0,kxMax)
     ky = np.arange(0,kyMax)
     KX, KY = np.meshgrid(kx[1:], ky[1:])
 
-    slice1 = sp2d_uu[4,1:kyMax,1:kxMax]
-    slice2 = sp2d_uu[8,1:kyMax,1:kxMax]
-    slice3 = sp2d_uu[16,1:kyMax,1:kxMax]
-    slice4 = sp2d_uu[32,1:kyMax,1:kxMax]
+    for k in range(1,nz):
+        print 'k =', k
+        sliceX =  sp2d_uu[k, 1:kyMax, 1:kxMax] * kx[1:]
+        sliceY =  sp2d_vv[k, 1:kyMax, 1:kxMax] * kx[1:]
+        sliceZ =  sp2d_ww[k, 1:kyMax, 1:kxMax] * kx[1:]
+        for j in range(1,np.size(ky)):
+            sliceX[j-1,:] = sliceX[j-1,:] * ky[j]
+            sliceY[j-1,:] = sliceY[j-1,:] * ky[j]
+            sliceZ[j-1,:] = sliceZ[j-1,:] * ky[j]
 
-    ax = fig.add_subplot(2,2,1)
-    levels = np.linspace(np.min(slice1), np.max(slice1), numLevs)
-    cs = plt.contourf(KX, KY, slice1, levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-    plt.title(r'$E_{uu}$')
-    cbar = plt.colorbar();    plt.tight_layout()
+        fig = plt.figure(figsize=(15,4))
+        ax = fig.add_subplot(1,3,1)
+        levels = np.linspace(np.min(sliceX), np.max(sliceX), numLevs)
+        cs = plt.contourf(KX, KY, sliceX, levels);
+        ax.set_xscale('log');  ax.set_yscale('log')
+        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.title(r'$E_{uu}$'); cbar = plt.colorbar();    plt.tight_layout()
 
-    ax = fig.add_subplot(2,2,2)
-    levels = np.linspace(np.min(slice2), np.max(slice2), numLevs)
-    cs = plt.contourf(KX, KY, slice2, levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-    plt.title(r'$E_{uu}$')
-    cbar = plt.colorbar();    plt.tight_layout()
+        ax = fig.add_subplot(1,3,2)
+        levels = np.linspace(np.min(sliceY), np.max(sliceY), numLevs)
+        cs = plt.contourf(KX, KY, sliceY, levels);
+        ax.set_xscale('log');  ax.set_yscale('log')
+        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.title(r'$E_{vv}$'); cbar = plt.colorbar();    plt.tight_layout()
+
+        ax = fig.add_subplot(1,3,3)
+        levels = np.linspace(np.min(sliceZ), np.max(sliceZ), numLevs)
+        cs = plt.contourf(KX, KY, sliceZ, levels);
+        ax.set_xscale('log');  ax.set_yscale('log')
+        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.title(r'$E_{ww}$'); cbar = plt.colorbar();    plt.tight_layout()
+
+        mySaveFig('sp2d_z'+str(k)+'_', 0)
+
+    #ax = fig.add_subplot(2,2,2)
+    #levels = np.linspace(np.min(slice2), np.max(slice2), numLevs)
+    #cs = plt.contourf(KX, KY, slice2, levels);
+    #ax.set_xscale('log');  ax.set_yscale('log')
+    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.title(r'$E_{uu}$')
+    #cbar = plt.colorbar();    plt.tight_layout()
      
-    ax = fig.add_subplot(2,2,3)
-    levels = np.linspace(np.min(slice3), np.max(slice3), numLevs)
-    cs = plt.contourf(KX, KY, slice3, levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-    plt.title(r'$E_{uu}$')
-    cbar = plt.colorbar();    plt.tight_layout()
+    #ax = fig.add_subplot(2,2,3)
+    #levels = np.linspace(np.min(slice3), np.max(slice3), numLevs)
+    #cs = plt.contourf(KX, KY, slice3, levels);
+    #ax.set_xscale('log');  ax.set_yscale('log')
+    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.title(r'$E_{uu}$')
+    #cbar = plt.colorbar();    plt.tight_layout()
     
-    ax = fig.add_subplot(2,2,4)
-    levels = np.linspace(np.min(slice4), np.max(slice4), numLevs)
-    cs = plt.contourf(KX, KY, slice4, levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-    plt.title(r'$E_{uu}$')
-    cbar = plt.colorbar();    plt.tight_layout()
+    #ax = fig.add_subplot(2,2,4)
+    #levels = np.linspace(np.min(slice4), np.max(slice4), numLevs)
+    #cs = plt.contourf(KX, KY, slice4, levels);
+    #ax.set_xscale('log');  ax.set_yscale('log')
+    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.title(r'$E_{uu}$')
+    #cbar = plt.colorbar();    plt.tight_layout()
 
-    mySaveFig('sp2d_horiz', 0)
+    #mySaveFig('sp2d_horiz', 0)
     
     
 if rs_plot:

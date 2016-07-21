@@ -47,7 +47,7 @@ spanSpec_plot   = 0;
 sp1dky_plot     = 0;
 sp1dkx_plot     = 0;
 sp2d_plot_vert  = 0;
-sp2d_plot_horiz = 1;
+sp2d_plot_horiz = 1;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;
@@ -480,39 +480,69 @@ if sp2d_plot_horiz:
     ky = np.arange(0,kyMax)
     KX, KY = np.meshgrid(kx[1:], ky[1:])
 
-    for k in range(1,nz):
+    uu = sp2d_uu[:,1:kyMax,1:kxMax]
+    vv = sp2d_vv[:,1:kyMax,1:kxMax]
+    ww = sp2d_ww[:,1:kyMax,1:kxMax]
+    uukx = uu * kx[1:]
+    vvkx = vv * kx[1:]
+    wwkx = ww * kx[1:]
+    uukxky = uukx
+    vvkxky = vvkx
+    wwkxky = wwkx
+    for j in range(1,np.size(ky)):
+        uukxky[:,j-1,:] = uukxky[:,j-1,:] * ky[j]
+        vvkxky[:,j-1,:] = vvkxky[:,j-1,:] * ky[j]
+        wwkxky[:,j-1,:] = wwkxky[:,j-1,:] * ky[j]
+
+    for k in range(1,nz,20):
         print 'k =', k
-        sliceX =  sp2d_uu[k, 1:kyMax, 1:kxMax] * kx[1:]
-        sliceY =  sp2d_vv[k, 1:kyMax, 1:kxMax] * kx[1:]
-        sliceZ =  sp2d_ww[k, 1:kyMax, 1:kxMax] * kx[1:]
-        for j in range(1,np.size(ky)):
-            sliceX[j-1,:] = sliceX[j-1,:] * ky[j]
-            sliceY[j-1,:] = sliceY[j-1,:] * ky[j]
-            sliceZ[j-1,:] = sliceZ[j-1,:] * ky[j]
+        sliceX = uukxky[k,:,:]
+        sliceY = vvkxky[k,:,:]
+        sliceZ = wwkxky[k,:,:]
+
+        #sliceX =  sp2d_uu[k, 1:kyMax, 1:kxMax] * kx[1:]
+        #sliceY =  sp2d_vv[k, 1:kyMax, 1:kxMax] * kx[1:]
+        #sliceZ =  sp2d_ww[k, 1:kyMax, 1:kxMax] * kx[1:]
+        #for j in range(1,np.size(ky)):
+        #    sliceX[j-1,:] = sliceX[j-1,:] * ky[j]
+        #    sliceY[j-1,:] = sliceY[j-1,:] * ky[j]
+        #    sliceZ[j-1,:] = sliceZ[j-1,:] * ky[j]
+
+        if localMax:
+            minX = np.min(sliceX); maxX = np.max(sliceX)
+            minY = np.min(sliceY); maxY = np.max(sliceY)
+            minZ = np.min(sliceZ); maxZ = np.max(sliceZ)
+            tag = '_loc_z'
+        else:  # use global max instead
+            minX = np.min(uukxky); maxX = np.max(uukxky)
+            minY = np.min(vvkxky); maxY = np.max(vvkxky)
+            minZ = np.min(wwkxky); maxZ = np.max(wwkxky)
+            tag = '_glo_z'
 
         fig = plt.figure(figsize=(15,4))
         ax = fig.add_subplot(1,3,1)
-        levels = np.linspace(np.min(sliceX), np.max(sliceX), numLevs)
+        levels = np.linspace(minX, maxX, numLevs)
         cs = plt.contourf(KX, KY, sliceX, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
         plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
         plt.title(r'$E_{uu}$'); cbar = plt.colorbar();    plt.tight_layout()
 
         ax = fig.add_subplot(1,3,2)
-        levels = np.linspace(np.min(sliceY), np.max(sliceY), numLevs)
+        levels = np.linspace(minY, maxY, numLevs)
         cs = plt.contourf(KX, KY, sliceY, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
         plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
         plt.title(r'$E_{vv}$'); cbar = plt.colorbar();    plt.tight_layout()
 
         ax = fig.add_subplot(1,3,3)
-        levels = np.linspace(np.min(sliceZ), np.max(sliceZ), numLevs)
+        levels = np.linspace(minZ, maxZ, numLevs)
         cs = plt.contourf(KX, KY, sliceZ, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
         plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
         plt.title(r'$E_{ww}$'); cbar = plt.colorbar();    plt.tight_layout()
 
-        mySaveFig('sp2d_z'+str(k)+'_', 0)
+        mySaveFig('sp2d' + tag + str(k)+'_', 0)
+        plt.close()
 
     #ax = fig.add_subplot(2,2,2)
     #levels = np.linspace(np.min(slice2), np.max(slice2), numLevs)

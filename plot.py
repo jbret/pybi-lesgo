@@ -56,7 +56,7 @@ snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
 
 mkm = 0;   # reference DNS data from MKM 1999
 
-z = np.linspace(0, Lz, nz, endpoint=True)
+z = np.linspace(0, Lz, nz, endpoint=False)  # w-grid (no point at z = 1.0)
 y = np.linspace(0, Ly, ny, endpoint=False)
 x = np.linspace(0, Lx, nx, endpoint=False)
 

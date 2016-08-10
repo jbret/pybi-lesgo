@@ -39,7 +39,7 @@ if isfile(filename2):
     t = lines[:,0]
     num_kx = np.size(lines,1)
 
-    fig = plt.figure(figsize=(12,3))
+    fig = plt.figure(figsize=(12,6))
     for i in range(1, num_kx-1):
         plt.semilogy(t, lines[:,i], label=r'$k_x =$'+str(i-1))
         plt.rc('lines', linewidth=2)
@@ -48,12 +48,13 @@ if isfile(filename2):
                                    #cycler('linestyle', ['-', '--', ':', '-.'])))
 
     plt.xlabel('timestep'); plt.ylabel('kx energy')
-    plt.legend(loc='lower left',fancybox=True, shadow=True,ncol=2)
+    #plt.legend(loc='lower left',fancybox=True, shadow=True,ncol=10)
     #plt.legend(loc='lower center', fancybox=True, shadow=True, ncol=num_kx-1)
+    lgd = plt.legend(bbox_to_anchor=(0.,1.02,1.,.75), loc=2, ncol=6, mode="expand", borderaxespad=0.)
     ymin, ymax = plt.ylim()
-    #plt.ylim((1, ymax))
-    plt.tight_layout()
-    plt.savefig('hist_kx_energy' + runName + '.png')
+    plt.ylim((10**4, ymax))
+    #plt.tight_layout()
+    plt.savefig('hist_kx_energy' + runName + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
     #fig.show()
 else:
     print ">>>> File "+filename2+" is not present!"

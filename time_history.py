@@ -53,14 +53,15 @@ if isfile(filename2):
                                    cycler('marker', ['o', 's','o','s'])))
                                    #cycler('linestyle', ['-', '--', ':', '-.'])))
 
-    h = np.size(t)/2
-    kxavg = np.zeros((h,kx_plot))
-    for i in range(1,kx_plot-1):
-	kxavg[:,i] = np.sum(lines[h:,i]) / h
-        plt.semilogy(t[h:], kxavg[:,i], '-')
+    h = np.size(t)/6
+    h2 = np.size(t)-h
+    kxavg = np.zeros((h2,kx_plot))
+    for i in range(1,kx_plot):
+	kxavg[:,i-1] = np.sum(lines[h:,i]) / h2
+        plt.semilogy(t[h:], kxavg[:,i-1], '-')
 
     tot_kx = np.sum(kxavg[0,:])
-    tot = np.zeros((h,1))
+    tot = np.zeros((h2,1))
     tot[:,0] = tot_kx
     plt.semilogy(t[h:], tot[:,0], '-')
 
@@ -76,6 +77,21 @@ if isfile(filename2):
     #plt.tight_layout()
     plt.savefig('hist_kx_energy' + runName + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
     #fig.show()
+
+    fig = plt.figure(figsize=(12,6))
+    kxs = np.array(range(0,32))
+    plt.plot(kxs,kxnorm[0,0:32])
+    f = 1.0/kxs/5.0
+    plt.plot(kxs,f)
+    plt.savefig('kxs.png')
+
+
+
+
+
+
+
+
 else:
     print ">>>> File "+filename2+" is not present!"
 

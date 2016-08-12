@@ -53,6 +53,19 @@ if isfile(filename2):
                                    cycler('marker', ['o', 's','o','s'])))
                                    #cycler('linestyle', ['-', '--', ':', '-.'])))
 
+    h = np.size(t)/2
+    kxavg = np.zeros((h,kx_plot))
+    for i in range(1,kx_plot-1):
+	kxavg[:,i] = np.sum(lines[h:,i]) / h
+        plt.semilogy(t[h:], kxavg[:,i], '-')
+
+    tot_kx = np.sum(kxavg[0,:])
+    tot = np.zeros((h,1))
+    tot[:,0] = tot_kx
+    plt.semilogy(t[h:], tot[:,0], '-')
+
+    kxnorm = kxavg / tot_kx
+    
     plt.xlabel('timestep'); plt.ylabel('kx energy')
     #plt.legend(loc='lower left',fancybox=True, shadow=True,ncol=10)
     #plt.legend(loc='lower center', fancybox=True, shadow=True, ncol=num_kx-1)

@@ -73,16 +73,16 @@ if isfile(filename2):
     #lgd = plt.legend(bbox_to_anchor=(0.,1.02,1.,.75), loc=2, ncol=6, mode="expand", borderaxespad=0.)
     lgd = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, ncol=4, borderaxespad=0.)
     ymin, ymax = plt.ylim()
-    plt.ylim((10**4, ymax))
+    plt.ylim((10**1, ymax))
     #plt.tight_layout()
     plt.savefig('hist_kx_energy' + runName + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
     #fig.show()
 
     fig = plt.figure(figsize=(12,6))
     kxs = np.array(range(0,32))
-    plt.plot(kxs,kxnorm[0,0:32])
-    f = 1.0/kxs/5.0
-    plt.plot(kxs,f)
+    plt.plot(kxs,kxnorm[0,0:32],'-og')
+    f = 1.0/kxs
+    plt.plot(kxs,f,'-ob')
     plt.savefig('kxs.png')
 
 

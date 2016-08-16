@@ -43,11 +43,14 @@ Lz = 1.0;
 vert = 'z';  vertvel = 'w';
 span = 'y';  spanvel = 'v';
 
-vel_avg_plot    = 0;
+compare_cases = 1;
+c1dir = '../rnl-64-kx1/'
+
+vel_avg_plot    = 1;
 uXMean_plot     = 0;
 tau_plot        = 0;
 spanSpec_plot   = 0;
-sp1dky_plot     = 1;
+sp1dky_plot     = 0;
 sp1dkx_plot     = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
@@ -89,8 +92,12 @@ plt.close("all")
 if vel_avg_plot:
     uMean = np.load(datdir+'uMean.npy')
     fig = plt.figure()
-    plt.semilogx(z, uMean, 'o')
+    plt.semilogx(z, uMean, 'ob', label=r'$ k_x = 2 $')
     #plt.semilogx(z/(1./180), uMean, 'o')
+    if compare_cases:
+        c1_uMean = np.load(c1dir+datdir+'uMean.npy')
+        c1_z = z
+        plt.semilogx(c1_z, c1_uMean, 'or', label=r'$ k_x = 3 $')
     plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
     #plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
     plt.xlabel('$'+vert+' / H $', fontsize=18);
@@ -98,7 +105,7 @@ if vel_avg_plot:
     plt.ylabel('$[\ u / u_*]$', fontsize=18); 
     #plt.xlim([.02 ,1.1])
     #plt.xlim([1, 1000])
-    plt.text(.4,3,r'$ \kappa = 0.4,\ z_{0} = 10^{-4} $', fontsize=14)
+    plt.text(.06,1,r'$ \kappa = 0.4,\ z_{0} = 10^{-4} $', fontsize=14)
 
     if mkm:
         yp180 = np.load('yp180.npy')

@@ -46,7 +46,7 @@ span = 'z';  spanvel = 'w';
 compare_cases = 0;
 c1dir = '../rnl-64-kx1/'
 
-vel_avg_plot    = 1;
+vel_avg_plot    = 0;
 uXMean_plot     = 0;
 tau_plot        = 0;
 spanSpec_plot   = 0;
@@ -54,7 +54,7 @@ sp1dky_plot     = 0;
 sp1dkx_plot     = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 0;
+rs_plot         = 1;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;
 snap_plot_yz    = 0;
@@ -614,8 +614,8 @@ if rs_plot:
     rs22Mean = np.load(datdir+'rs22Mean.npy')
     rs33Mean = np.load(datdir+'rs33Mean.npy')
     rs13Mean = np.load(datdir+'rs13Mean.npy')
-    rs23Mean = np.load(datdir+'rs23Mean.npy')
-    rs12Mean = np.load(datdir+'rs12Mean.npy')
+    #rs23Mean = np.load(datdir+'rs23Mean.npy')
+    #rs12Mean = np.load(datdir+'rs12Mean.npy')
     fig = plt.figure()
     #plt.subplot(2,1,1)
     L1=plt.plot(z, rs11Mean, 'o', color='b', 
@@ -626,13 +626,16 @@ if rs_plot:
                 label = r'$['+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
     L4=plt.plot(z, rs13Mean, 'o', color='c', 
                 label = r'$[ u^{\prime} '+vertvel+'^{\prime}]$')
-    L5=plt.plot(z, rs23Mean, 'o', color='m', 
-                label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
-    L6=plt.plot(z, rs12Mean, 'o', color='k', 
-                label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
+    #L5=plt.plot(z, rs23Mean, 'o', color='m', 
+    #            label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    #L6=plt.plot(z, rs12Mean, 'o', color='k', 
+    #            label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
     plt.legend(loc='upper right',ncol=2)
     plt.xlabel(r'$'+vert+' / H $', fontsize=18); 
     plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    plt.ylim([-2, 20])
+    plt.xticks(fontsize = 16)
+    plt.yticks(fontsize = 16)
     plt.tight_layout()
     #plt.subplot(2,1,2)
     #Re = 180; zp = z/(1./Re)
@@ -655,10 +658,10 @@ if rs_plot:
                 label = r'$[ '+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
     L4=plt.plot(z, -1.0*rs13Mean, 'o', color='c', 
                 label = r'$[ -u^{\prime} '+vertvel+'^{\prime}]$')
-    L5=plt.plot(z, rs23Mean, 'o', color='m', 
-                label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
-    L6=plt.plot(z, rs12Mean, 'o', color='k', 
-                label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
+    #L5=plt.plot(z, rs23Mean, 'o', color='m', 
+    #            label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    #L6=plt.plot(z, rs12Mean, 'o', color='k', 
+    #            label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
     plt.legend(loc='upper right',ncol=2)
     plt.xlabel(r'$ '+vert+' / H $', fontsize=18); 
     plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)

@@ -40,19 +40,19 @@ Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
 
-vert = 'y';  vertvel = 'v';
-span = 'z';  spanvel = 'w';
+vert = 'z';  vertvel = 'w';
+span = 'y';  spanvel = 'v';
 
 vel_avg_plot    = 0;
 uXMean_plot     = 0;
 tau_plot        = 0;
 spanSpec_plot   = 0;
-sp1dky_plot     = 0;
+sp1dky_plot     = 1;
 sp1dkx_plot     = 0;
-sp2d_plot_vert  = 1;
-sp2d_plot_horiz = 1;  localMax = 1  # if 0 then uses global max
-rs_plot         = 1;
-vel2_rs_plot    = 1;
+sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
+sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
+rs_plot         = 0;
+vel2_rs_plot    = 0;
 snap_plot_xy    = 0;
 snap_plot_yz    = 0;
 snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
@@ -263,7 +263,7 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{u'+vertvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{u'+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -271,7 +271,7 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -279,7 +279,7 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_+'+span+'+ E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dky_LAMY_', 0)
@@ -296,7 +296,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE11[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{uu} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+r' E_{uu} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
      
     ax = fig.add_subplot(2,2,2)
@@ -304,7 +304,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{u'+vertvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{u'+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -312,7 +312,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -320,7 +320,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_+'+span+' E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dky_KY_', 0)
@@ -445,7 +445,8 @@ if sp2d_plot_vert:
     KX, KY = np.meshgrid(kx[1:], ky[1:])
 
     fig = plt.figure(figsize=(12,8))
-    xlab = '$ \lambda_y / \delta $';    ylab = '$ z / \delta $';    myFS = 18
+    xlab = '$ \lambda_'+span+' / \delta $';    ylab = '$'+vert+' / \delta $';    
+    myFS = 18
     numLevs = 30;
 
     m1 = 0;     m2 = 1;     m3 = 2;     m4 = 3;
@@ -492,7 +493,8 @@ if sp2d_plot_horiz:
     sp2d_vv = np.load(datdir+'sp2d_vv.npy')
     sp2d_ww = np.load(datdir+'sp2d_ww.npy')
 
-    xlab = '$ k_x / \delta $';    ylab = '$ k_y / \delta $';    myFS = 18;
+    xlab = '$ k_x / \delta $';    ylab = '$ k_'+span+' / \delta $';    
+    myFS = 18;
     numLevs = 30;
 
     kxMax = nx/2;
@@ -555,14 +557,16 @@ if sp2d_plot_horiz:
         cs = plt.contourf(KX, KY, sliceY, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
         plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-        plt.title(r'$E_{vv}$'); cbar = plt.colorbar();    plt.tight_layout()
+        plt.title(r'$E_{'+spanvel+spanvel+'}$'); 
+        cbar = plt.colorbar();    plt.tight_layout()
 
         ax = fig.add_subplot(1,3,3)
         levels = np.linspace(minZ, maxZ, numLevs)
         cs = plt.contourf(KX, KY, sliceZ, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
         plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
-        plt.title(r'$E_{ww}$'); cbar = plt.colorbar();    plt.tight_layout()
+        plt.title(r'$E_{'+vertvel+vertvel+'}$'); 
+        cbar = plt.colorbar();    plt.tight_layout()
 
         mySaveFig('sp2d' + tag + str(k)+'_', 0)
         plt.close()
@@ -603,14 +607,21 @@ if rs_plot:
     rs12Mean = np.load(datdir+'rs12Mean.npy')
     fig = plt.figure()
     #plt.subplot(2,1,1)
-    L1=plt.plot(z, rs11Mean, 'o', color='b', label = r'$[ u^{\prime} u^{\prime}]$')
-    L2=plt.plot(z, rs22Mean, 'o', color='g', label = r'$[ v^{\prime} v^{\prime}]$')
-    L3=plt.plot(z, rs33Mean, 'o', color='r', label = r'$[ w^{\prime} w^{\prime}]$')
-    L4=plt.plot(z, rs13Mean, 'o', color='c', label = r'$[ u^{\prime} w^{\prime}]$')
-    L5=plt.plot(z, rs23Mean, 'o', color='m', label = r'$[ v^{\prime} w^{\prime}]$')
-    L6=plt.plot(z, rs12Mean, 'o', color='k', label = r'$[ u^{\prime} v^{\prime}]$')
+    L1=plt.plot(z, rs11Mean, 'o', color='b', 
+                label = r'$[ u^{\prime} u^{\prime}]$')
+    L2=plt.plot(z, rs22Mean, 'o', color='g', 
+                label = r'$[ '+spanvel+'^{\prime} '+spanvel+'^{\prime}]$')
+    L3=plt.plot(z, rs33Mean, 'o', color='r', 
+                label = r'$['+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    L4=plt.plot(z, rs13Mean, 'o', color='c', 
+                label = r'$[ u^{\prime} '+vertvel+'^{\prime}]$')
+    L5=plt.plot(z, rs23Mean, 'o', color='m', 
+                label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    L6=plt.plot(z, rs12Mean, 'o', color='k', 
+                label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
     plt.legend(loc='upper right',ncol=2)
-    plt.xlabel(r'$ z / H $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    plt.xlabel(r'$'+vert+' / H $', fontsize=18); 
+    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
     plt.tight_layout()
     #plt.subplot(2,1,2)
     #Re = 180; zp = z/(1./Re)
@@ -627,24 +638,20 @@ if rs_plot:
 
     fig = plt.figure()
     #plt.subplot(2,1,1)
-    L2=plt.plot(z, rs22Mean, 'o', color='g', label = r'$[ v^{\prime} v^{\prime}]$')
-    L3=plt.plot(z, rs33Mean, 'o', color='r', label = r'$[ w^{\prime} w^{\prime}]$')
-    L4=plt.plot(z, -1.0*rs13Mean, 'o', color='c', label = r'$[ -u^{\prime} w^{\prime}]$')
-    L5=plt.plot(z, rs23Mean, 'o', color='m', label = r'$[ v^{\prime} w^{\prime}]$')
-    L6=plt.plot(z, rs12Mean, 'o', color='k', label = r'$[ u^{\prime} v^{\prime}]$')
+    L2=plt.plot(z, rs22Mean, 'o', color='g', 
+                label = r'$[ '+spanvel+'^{\prime} '+spanvel+'^{\prime}]$')
+    L3=plt.plot(z, rs33Mean, 'o', color='r', 
+                label = r'$[ '+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    L4=plt.plot(z, -1.0*rs13Mean, 'o', color='c', 
+                label = r'$[ -u^{\prime} '+vertvel+'^{\prime}]$')
+    L5=plt.plot(z, rs23Mean, 'o', color='m', 
+                label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+    L6=plt.plot(z, rs12Mean, 'o', color='k', 
+                label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
     plt.legend(loc='upper right',ncol=2)
-    plt.xlabel(r'$ z / H $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    plt.xlabel(r'$ '+vert+' / H $', fontsize=18); 
+    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
     plt.tight_layout()
-    #plt.subplot(2,1,2)
-    #Re = 180; zp = z/(1./Re)
-    #L2=plt.plot(zp, rs22Mean, 'o', color='g', label = r'$[ v^{\prime} v^{\prime}]$')
-    #L3=plt.plot(zp, rs33Mean, 'o', color='r', label = r'$[ w^{\prime} w^{\prime}]$')
-    #L4=plt.plot(zp, -1.0*rs13Mean, 'o', color='c', label = r'$[ -u^{\prime} w^{\prime}]$')
-    #L5=plt.plot(zp, rs23Mean, 'o', color='m', label = r'$[ v^{\prime} w^{\prime}]$')
-    #L6=plt.plot(zp, rs12Mean, 'o', color='k', label = r'$[ u^{\prime} v^{\prime}]$')
-    #plt.legend(loc='upper right',ncol=2)
-    #plt.xlabel(r'$ z^{+} $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
-    #plt.tight_layout()
     mySaveFig('rs2_', 0)
 
     if vel2_rs_plot:
@@ -654,20 +661,31 @@ if rs_plot:
             uwMean = np.load(datdir+'uwMean.npy')
             vwMean = np.load(datdir+'vwMean.npy')
             uvMean = np.load(datdir+'uvMean.npy')
-            #L1=plt.plot(z, rs11Mean, 'o', color='b', label = r'$[ u^{\prime} u^{\prime}]$')
-            L2=plt.plot(z, rs22Mean, 'o', color='g', label = r'$[ v^{\prime} v^{\prime}]$')
-            L3=plt.plot(z, rs33Mean, 'o', color='r', label = r'$[ w^{\prime} w^{\prime}]$')
-            L4=plt.plot(z, -1*rs13Mean, 'o', color='c', label = r'$[ u^{\prime} w^{\prime}]$')
-            L5=plt.plot(z, rs23Mean, 'o', color='m', label = r'$[ v^{\prime} w^{\prime}]$')
-            L6=plt.plot(z, rs12Mean, 'o', color='k', label = r'$[ u^{\prime} v^{\prime}]$')
+            #L1=plt.plot(z, rs11Mean, 'o', color='b', 
+            #            label = r'$[ u^{\prime} u^{\prime}]$')
+            L2=plt.plot(z, rs22Mean, 'o', color='g', 
+                        label = r'$[ '+spanvel+'^{\prime} '+spanvel+'^{\prime}]$')
+            L3=plt.plot(z, rs33Mean, 'o', color='r', 
+                        label = r'$[ '+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
+            L4=plt.plot(z, -1*rs13Mean, 'o', color='c', 
+                        label = r'$[ u^{\prime} '+vertvel+'^{\prime}]$')
+            L5=plt.plot(z, rs23Mean, 'o', color='m', 
+                        label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+            L6=plt.plot(z, rs12Mean, 'o', color='k', 
+                        label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
             #L7=plt.plot(z, uuMean, color='b', label = r'$[ uu ]$')
-            L8=plt.plot(z, vvMean, linewidth=3, color='g', label = r'$[ vv ]$')
-            L9=plt.plot(z, wwMean, linewidth=3, color='r', label = r'$[ ww ]$')
-            L10=plt.plot(z, -1*uwMean, linewidth=3, color='c', label = r'$[ uw ]$')
-            L11=plt.plot(z, vwMean, linewidth=3, color='m', label = r'$[ vw ]$')
-            L12=plt.plot(z, uvMean, linewidth=3, color='k', label = r'$[ uv ]$')
+            L8=plt.plot(z, vvMean, linewidth=3, color='g', 
+                        label = r'$[ '+spanvel+spanvel+' ]$')
+            L9=plt.plot(z, wwMean, linewidth=3, color='r', 
+                        label = r'$[ '+vertvel+vertvel+' ]$')
+            L10=plt.plot(z, -1*uwMean, linewidth=3, color='c', 
+                         label = r'$[ u'+vertvel+' ]$')
+            L11=plt.plot(z, vwMean, linewidth=3, color='m', 
+                         label = r'$[ '+spanvel+vertvel+' ]$')
+            L12=plt.plot(z, uvMean, linewidth=3, color='k', 
+                         label = r'$[ u'+spanvel+' ]$')
             plt.legend(loc='lower right',ncol=2)
-            plt.xlabel(r'$ z / H $', fontsize=18); 
+            plt.xlabel(r'$ '+vert+' / H $', fontsize=18); 
             plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
             plt.tight_layout()
             mySaveFig('vel2_rs_', 0)
@@ -691,7 +709,7 @@ if rs_plot:
             sp22_1d = np.load(datdir+'sp1dky_vv.npy')
             fig = plt.figure()
             plt.plot(z,rs22Mean,'^',label='rs22')
-            plt.plot(z,vvMean,'s',label='vvMean')
+            plt.plot(z,vvMean,'s',label=spanvel+spanvel+'Mean')
             comp22 = np.mean(sp22_1d[:,:,:], axis=2)
             comp22_ = comp22[:,0:ny/2]
             comp22_[:,1:ny/2] = comp22_[:,1:ny/2] + comp22_[:,1:ny/2]
@@ -703,7 +721,7 @@ if rs_plot:
             sp33_1d = np.load(datdir+'sp1dky_ww.npy')
             fig = plt.figure()
             plt.plot(z,rs33Mean,'^',label='rs33')
-            plt.plot(z,wwMean,'s',label='wwMean')
+            plt.plot(z,wwMean,'s',label=vertvel+vertvel+'Mean')
             comp33 = np.mean(sp33_1d[:,:,:], axis=2)
             comp33_ = comp33[:,0:ny/2]
             comp33_[:,1:ny/2] = comp33_[:,1:ny/2] + comp33_[:,1:ny/2]
@@ -720,7 +738,8 @@ if snap_plot_xy:
         fig = plt.figure(figsize=(scale*Lx,scale*Ly))
         cs = plt.contourf(X, Y, snap[0,k,:,:])
         cbar = plt.colorbar()
-        plt.xlabel(r'$ x / H $', fontsize=18); plt.ylabel(r'$ y / H $', fontsize=18); 
+        plt.xlabel(r'$ x / H $', fontsize=18); 
+        plt.ylabel(r'$'+span+' / H $', fontsize=18); 
         plt.tight_layout()
         #fig.show()
         #plt.savefig(figdir+'xy_'+str(k)+'.png', dpi=100)
@@ -734,7 +753,8 @@ if snap_plot_yz:
         cs = plt.contourf(Y, Z, snap[0,:,:,i]);  csName = 'yzCon_'
         #cs = plt.pcolor(Y, Z, snap[0,:,:,i]);  csName = 'yzCol_'
         cbar = plt.colorbar()
-        plt.xlabel(r'$ y / H $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18); 
+        plt.xlabel(r'$'+span+' / H $', fontsize=18); 
+        plt.ylabel(r'$'+vert+' / H $', fontsize=18); 
         plt.tight_layout()
         mySaveFig(csName, 0)
 

@@ -40,16 +40,19 @@ Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
 
+vert = 'y';  vertvel = 'v';
+span = 'z';  spanvel = 'w';
+
 vel_avg_plot    = 0;
 uXMean_plot     = 0;
 tau_plot        = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;
 sp1dkx_plot     = 0;
-sp2d_plot_vert  = 0;
+sp2d_plot_vert  = 1;
 sp2d_plot_horiz = 1;  localMax = 1  # if 0 then uses global max
-rs_plot         = 0;
-vel2_rs_plot    = 0;
+rs_plot         = 1;
+vel2_rs_plot    = 1;
 snap_plot_xy    = 0;
 snap_plot_yz    = 0;
 snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
@@ -86,12 +89,12 @@ plt.close("all")
 if vel_avg_plot:
     uMean = np.load(datdir+'uMean.npy')
     fig = plt.figure()
-    #plt.semilogx(z, uMean, 'o')
-    plt.semilogx(z/(1./180), uMean, 'o')
-    #plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
-    plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
-    #plt.xlabel('$ z / H $', fontsize=18);
-    plt.xlabel('$z^{+} $', fontsize=18);
+    plt.semilogx(z, uMean, 'o')
+    #plt.semilogx(z/(1./180), uMean, 'o')
+    plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', label=r'$1/\kappa \ \mathrm{log}(z/z_{0})$')
+    #plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
+    plt.xlabel('$'+vert+' / H $', fontsize=18);
+    #plt.xlabel('$'+vert+'^{+} $', fontsize=18);
     plt.ylabel('$[\ u / u_*]$', fontsize=18); 
     #plt.xlim([.02 ,1.1])
     #plt.xlim([1, 1000])
@@ -115,7 +118,8 @@ if uXMean_plot:
     uXMean = np.load(datdir+'uXMean.npy')
     cs = plt.contourf(Y, Z, uXMean[:,:], vmin=0, vmax=17)
     cbar = plt.colorbar()
-    plt.xlabel('$ y / H $', fontsize=18); plt.ylabel('$ z / H $', fontsize=18);
+    plt.xlabel('$'+span+' / H $', fontsize=18); 
+    plt.ylabel('$'+vert+' / H $', fontsize=18);
     #plt.suptitle('Streamwise velocity contours', fontsize = 16)
     # now make a circle with no fill, which is good for hilighting key results
     circle1=plt.Circle((0.261799, 0.1),.05,color='k',fill=False)
@@ -138,15 +142,18 @@ if tau_plot:
     rs13Mean = np.load(datdir+'rs13Mean.npy')
     txzMean = np.load(datdir+'txzMean.npy')
     fig = plt.figure()
-    plt.plot(-1*rs13Mean, z, '-o', color='g', label = r'$[ -u^{\prime} w^{\prime}]$')
-    plt.plot(-1*txzMean, z, '-o', color='r', label = r'$ [ -\tau_{xz} ] $')
+    plt.plot(-1*rs13Mean, z, '-o', color='g', 
+              label = '$[ -u^{\prime}'+vertvel+'^{\prime}]$')
+    # note below the 'r' needed before label (in order to render the \tau)
+    plt.plot(-1*txzMean, z, '-o', color='r', label = r'$ [ -\tau_{x'+vert+'} ] $')
     plt.plot(-1*(rs13Mean + txzMean), z, '-s', color='k', markeredgewidth=1, 
              markerfacecolor="None", label = r'$ \mathrm{sum} $')
     line = np.linspace(0,1,1000)
     plt.plot(line, 1+-1.0*line, '--', color='k')
     plt.plot(line, np.ones(len(line))*0.15, '--', color='k')
     plt.plot(line, np.ones(len(line))*0.05, '--', color='k')
-    plt.xlabel(r'$ \mathrm{Stress} $', fontsize=18); plt.ylabel(r'$ z / H $', fontsize=18)
+    plt.xlabel('$ \mathrm{Stress} $', fontsize=18); 
+    plt.ylabel('$'+vert+' / H $', fontsize=18)
     plt.legend()
     plt.tight_layout()
     mySaveFig('tau_', 0)
@@ -162,44 +169,56 @@ if spanSpec_plot:
     spec22 = np.mean(sp1dky_vv[:,:,:], axis=2)
     spec33 = np.mean(sp1dky_ww[:,:,:], axis=2)
 
-    Euu180_0z = np.load('Euu180_0z.npy')
-    Euu180_1z = np.load('Euu180_1z.npy')
-    Euu180_2z = np.load('Euu180_2z.npy')
-    Evv180_0z = np.load('Evv180_0z.npy')
-    Evv180_1z = np.load('Evv180_1z.npy')
-    Evv180_2z = np.load('Evv180_2z.npy')
-    Eww180_0z = np.load('Eww180_0z.npy')
-    Eww180_1z = np.load('Eww180_1z.npy')
-    Eww180_2z = np.load('Eww180_2z.npy')
+    if mkm:
+        Euu180_0z = np.load('Euu180_0z.npy')
+        Euu180_1z = np.load('Euu180_1z.npy')
+        Euu180_2z = np.load('Euu180_2z.npy')
+        Evv180_0z = np.load('Evv180_0z.npy')
+        Evv180_1z = np.load('Evv180_1z.npy')
+        Evv180_2z = np.load('Evv180_2z.npy')
+        Eww180_0z = np.load('Eww180_0z.npy')
+        Eww180_1z = np.load('Eww180_1z.npy')
+        Eww180_2z = np.load('Eww180_2z.npy')
 
-    heights = [ 5, 30, 98 ];  numH = np.size(heights)
+    #heights = [ 5, 30, 98 ];  
+    heights = [ 5, 30 ];  
+    numH = np.size(heights)
     ky = np.arange(0,ny/2)/2.0
     ky2 = np.arange(0,64)
     fig = plt.figure(figsize=(10,8))
     for j in range(0,numH):
         plt.subplot(1,numH,j+1)
         k = heights[j]
-        plt.loglog(ky[1:], spec11[k,1:ny/2]*np.pi,'-',color='red',label=r'$E_{uu}$')
-        #plt.loglog(ky[1:], spec13[k+1,1:ny/2],'-', label=r'$E_{uw}$')
-        plt.loglog(ky[1:], spec22[k,1:ny/2]*np.pi,'-',color='blue', label=r'$E_{vv}$')
-        plt.loglog(ky[1:], spec33[k,1:ny/2]*np.pi,'-',color='green', label=r'$E_{ww}$')
+        plt.loglog(ky[1:], spec11[k,1:ny/2]*np.pi,'-',color='red',
+                   label=r'$E_{uu}$')
+        #plt.loglog(ky[1:], spec13[k+1,1:ny/2],'-', label=r'$E_{u'+vertvel+'}$')
+        plt.loglog(ky[1:], spec22[k,1:ny/2]*np.pi,'-',color='blue', 
+                   label=r'$E_{'+spanvel+spanvel+'}$')
+        plt.loglog(ky[1:], spec33[k,1:ny/2]*np.pi,'-',color='green', 
+                   label=r'$E_{'+vertvel+vertvel+'}$')
         if mkm:
             if j==0:
                 plt.loglog(ky2, Euu180_0z,'o',color='red', label=r'$DNS, E_{uu}$')
-                plt.loglog(ky2, Eww180_0z,'o',color='blue', label=r'$DNS, E_{vv}$')
-                plt.loglog(ky2, Evv180_0z,'o',color='green', label=r'$DNS, E_{ww}$')
+                plt.loglog(ky2, Eww180_0z,'o',color='blue', 
+                           label=r'$DNS, E_{'+spanvel+spanvel+'}$')
+                plt.loglog(ky2, Evv180_0z,'o',color='green', 
+                           label=r'$DNS, E_{'+vertvel+vertvel+'}$')
             if j==1:
                 plt.loglog(ky2, Euu180_1z,'o',color='red', label=r'$DNS, E_{uu}$')
-                plt.loglog(ky2, Eww180_1z,'o',color='blue', label=r'$DNS, E_{vv}$')
-                plt.loglog(ky2, Evv180_1z,'o',color='green', label=r'$DNS, E_{ww}$')
+                plt.loglog(ky2, Eww180_1z,'o',color='blue', 
+                           label=r'$DNS, E_{'+spanvel+spanvel+'}$')
+                plt.loglog(ky2, Evv180_1z,'o',color='green',
+                           label=r'$DNS, E_{'+vertvel+vertvel+'}$')
             if j==2:
                 plt.loglog(ky2, Euu180_2z,'o',color='red', label=r'$DNS, E_{uu}$')
-                plt.loglog(ky2, Eww180_2z,'o',color='blue', label=r'$DNS, E_{vv}$')
-                plt.loglog(ky2, Evv180_2z,'o',color='green', label=r'$DNS, E_{ww}$')
+                plt.loglog(ky2, Eww180_2z,'o',color='blue', 
+                           label=r'$DNS, E_{'+spanvel+spanvel+'}$')
+                plt.loglog(ky2, Evv180_2z,'o',color='green',
+                           label=r'$DNS, E_{'+vertvel+vertvel+'}$')
 
             
-        plt.title(r'$ z^{+} = $'+str(heights[j]));
-        plt.xlabel(r'$ k_y $'); plt.tight_layout()
+        plt.title(r'$ '+vert+'^{+} = $'+str(heights[j]));
+        plt.xlabel(r'$ k_'+span+' $'); plt.tight_layout()
         plt.legend(loc='lower left')
         #plt.ylim([])
     mySaveFig('spanSpec', 0)
@@ -225,7 +244,8 @@ if sp1dky_plot:
 
     LAMY, Z = np.meshgrid(lamY[1:], z[1:])
 
-    xlab = '$ \lambda_y / \delta $';   ylab = '$ z / \delta $';   myFS = 18;
+    xlab = '$ \lambda_'+span+' / \delta $';   ylab = '$'+vert+' / \delta $';   
+    myFS = 18;
     numLevs = 30;
 
     fig = plt.figure(figsize=(12,4))
@@ -243,7 +263,7 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{uw} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{u'+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -251,7 +271,7 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -259,14 +279,15 @@ if sp1dky_plot:
     cs = plt.contourf(LAMY, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    plt.title(r'$k_+'+span+'+ E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dky_LAMY_', 0)
 
     KY, Z = np.meshgrid(ky[1:], z[1:])
 
-    xlab = '$ \delta k_y $';   ylab = '$ z / \delta $';   myFS = 18;
+    xlab = '$ \delta k_'+span+'$';   ylab = '$'+vert+' / \delta $';   
+    myFS = 18;
 
     fig = plt.figure(figsize=(12,4))
 
@@ -275,7 +296,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE11[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{uu} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
      
     ax = fig.add_subplot(2,2,2)
@@ -283,7 +304,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{uw} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{u'+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -291,7 +312,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{vv} / u_{\tau}^2 $')
+    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -299,7 +320,7 @@ if sp1dky_plot:
     cs = plt.contourf(KY, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{ww} / u_{\tau}^2 $')
+    plt.title(r'$k_+'+span+' E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dky_KY_', 0)
@@ -325,7 +346,8 @@ if sp1dkx_plot:
 
     LAMX, Z = np.meshgrid(lamX[1:], z[1:])
 
-    xlab = '$ \lambda_x / \delta $';   ylab = '$ z / \delta $';   myFS = 18;
+    xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';   
+    myFS = 18;
     numLevs = 30;
 
     fig = plt.figure(figsize=(12,4))
@@ -343,7 +365,7 @@ if sp1dkx_plot:
     cs = plt.contourf(LAMX, Z, kxE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{uw} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{u'+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -351,7 +373,7 @@ if sp1dkx_plot:
     cs = plt.contourf(LAMX, Z, kxE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{vv} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -359,14 +381,15 @@ if sp1dkx_plot:
     cs = plt.contourf(LAMX, Z, kxE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{ww} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dkx_LAMX_', 0)
 
     KX, Z = np.meshgrid(kx[1:], z[1:])
 
-    xlab = '$ \delta k_x $';   ylab = '$ z / \delta $';   myFS = 18;
+    xlab = '$ \delta k_x $';   ylab = '$'+vert+' / \delta $';   
+    myFS = 18;
 
     fig = plt.figure(figsize=(12,4))
 
@@ -383,7 +406,7 @@ if sp1dkx_plot:
     cs = plt.contourf(KX, Z, kxE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{uw} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{u'+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
     ax = fig.add_subplot(2,2,3)
@@ -391,7 +414,7 @@ if sp1dkx_plot:
     cs = plt.contourf(KX, Z, kxE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{vv} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{'+spanvel+spanvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     ax = fig.add_subplot(2,2,4)
@@ -399,7 +422,7 @@ if sp1dkx_plot:
     cs = plt.contourf(KX, Z, kxE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_x E_{ww} / u_{\tau}^2 $')
+    plt.title(r'$k_x E_{'+vertvel+vertvel+'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dkx_KX_', 0)

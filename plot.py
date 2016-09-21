@@ -5,7 +5,7 @@ Author: Joel Bretheim
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-matplotlib.rc('text', usetex = True)   # may need to disable on some machines
+#matplotlib.rc('text', usetex = True)   # may need to disable on some machines
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import re
@@ -14,6 +14,28 @@ from read_lesgo_bin import readmyfile
 from os import getcwd, system
 
 RNL_branch = 1;    devel_branch = 0;
+
+vel_avg_plot    = 0;
+uXMean_plot     = 0;
+tau_plot        = 0;
+spanSpec_plot   = 0;
+sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dkx_plot     = 0;
+sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
+sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
+rs_plot         = 0;
+vel2_rs_plot    = 0;
+snap_plot_xy    = 0;
+snap_plot_yz    = 0;
+snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
+
+mkm = 0;   # reference DNS data from MKM 1999
+
+vert = 'z';  vertvel = 'w';
+span = 'y';  spanvel = 'v';
+
+compare_cases = 0;
+c1dir = '../rnl-64-kx1/'
 
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
@@ -39,28 +61,6 @@ print "nz_ =", nz_
 Lx = 2*np.pi;
 Ly = 2*np.pi;
 Lz = 1.0;
-
-vert = 'y';  vertvel = 'v';
-span = 'z';  spanvel = 'w';
-
-compare_cases = 0;
-c1dir = '../rnl-64-kx1/'
-
-vel_avg_plot    = 0;
-uXMean_plot     = 0;
-tau_plot        = 0;
-spanSpec_plot   = 0;
-sp1dky_plot     = 0;
-sp1dkx_plot     = 0;
-sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
-sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 1;
-vel2_rs_plot    = 0;
-snap_plot_xy    = 0;
-snap_plot_yz    = 0;
-snap_plot       = 0;  thisSnap = 5000;  # on uv-grid
-
-mkm = 0;   # reference DNS data from MKM 1999
 
 z = np.linspace(0, Lz, nz, endpoint=False)  # w-grid (no point at z = 1.0)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -253,66 +253,45 @@ if sp1dky_plot:
     kyE22 = ky * e22[:,0:ny/2]
     kyE33 = ky * e33[:,0:ny/2]
 
-    LAMY, Z = np.meshgrid(lamY[1:], z[1:])
-
-    xlab = '$ \lambda_'+span+' / \delta $';   ylab = '$'+vert+' / \delta $';   
+    if plot_wavelen:  # plot by wavelength
+        xlab = '$ \lambda_'+span+' / \delta $';   ylab = '$'+vert+' / \delta $';
+        myX, Z = np.meshgrid(lamY[1:], z[1:])
+        tag = 'LAMY_'
+    else:             # plot by wavenumber
+        xlab = '$ \delta k_'+span+'$';   ylab = '$'+vert+' / \delta $';
+        myX, Z = np.meshgrid(ky[1:], z[1:])
+        tag = 'KY_'
     myFS = 18;
-    numLevs = 30;
+    numLevs = 100;
 
     fig = plt.figure(figsize=(12,4))
 
     ax = fig.add_subplot(2,2,1)
     levels = np.linspace(np.min(kyE11), np.max(kyE11), numLevs);
-    cs = plt.contourf(LAMY, Z, kyE11[1:,1:], levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_y E_{uu} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
-     
-    ax = fig.add_subplot(2,2,2)
-    levels = np.linspace(np.min(kyE13), np.max(kyE13), numLevs);
-    cs = plt.contourf(LAMY, Z, kyE13[1:,1:], levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{u'+vertvel+r'} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
-    
-    ax = fig.add_subplot(2,2,3)
-    levels = np.linspace(np.min(kyE22), np.max(kyE22), numLevs);
-    cs = plt.contourf(LAMY, Z, kyE22[1:,1:], levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
-
-    ax = fig.add_subplot(2,2,4)
-    levels = np.linspace(np.min(kyE33), np.max(kyE33), numLevs);
-    cs = plt.contourf(LAMY, Z, kyE33[1:,1:], levels);
-    ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
-    plt.title(r'$k_'+span+' E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
-
-    mySaveFig('sp1dky_LAMY_', 0)
-
-    KY, Z = np.meshgrid(ky[1:], z[1:])
-
-    xlab = '$ \delta k_'+span+'$';   ylab = '$'+vert+' / \delta $';   
-    myFS = 18;
-
-    fig = plt.figure(figsize=(12,4))
-
-    ax = fig.add_subplot(2,2,1)
-    levels = np.linspace(np.min(kyE11), np.max(kyE11), numLevs);
-    cs = plt.contourf(KY, Z, kyE11[1:,1:], levels);
+    kyE11plot = kyE11[1:,1:]
+    cs = plt.contourf(myX, Z, kyE11plot, levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_'+span+r' E_{uu} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
-     
+
+    np.max(kyE11plot)
+    imax1,jmax1 = np.unravel_index(np.argmax(kyE11plot[:   ,0:10]),np.shape(kyE11plot[:,0:10]))
+    imax2,jmax2 = np.unravel_index(np.argmax(kyE11plot[0:15,:]),np.shape(kyE11plot[0:15,:]))
+    print "peak1: ", kyE11plot[imax1,jmax1], myX[imax1,jmax1], Z[imax1,jmax1]
+    print "peak2: ", kyE11plot[imax2,jmax2], myX[imax2,jmax2], Z[imax2,jmax2]
+
+    arbNum = 50;
+    plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
+    plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+    plt.plot(np.ones(arbNum)*myX[imax2,jmax2], np.linspace(0,1,arbNum),'--',color='white')
+    plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*Z[imax2,jmax2],'--',color='white')
+    #plt.plot(myX[imax1,jmax1], Z[imax1,jmax1],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
+    #plt.plot(myX[imax2,jmax2+kysplit], Z[imax2,jmax2+kysplit],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
+    
     ax = fig.add_subplot(2,2,2)
     levels = np.linspace(np.min(kyE13), np.max(kyE13), numLevs);
-    cs = plt.contourf(KY, Z, kyE13[1:,1:], levels);
+    cs = plt.contourf(myX, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_'+span+' E_{u'+vertvel+r'} / u_{\tau}^2 $')
@@ -320,21 +299,27 @@ if sp1dky_plot:
     
     ax = fig.add_subplot(2,2,3)
     levels = np.linspace(np.min(kyE22), np.max(kyE22), numLevs);
-    cs = plt.contourf(KY, Z, kyE22[1:,1:], levels);
+    cs = plt.contourf(myX, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
+    imax1,jmax1 = np.unravel_index(np.argmax(kyE22),np.shape(kyE22))
+    plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
+    plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+    #plt.plot(np.ones(arbNum)*28, np.linspace(0,1,arbNum),'--',color='white')
+    #plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*0.04,'--',color='white')
+
     ax = fig.add_subplot(2,2,4)
     levels = np.linspace(np.min(kyE33), np.max(kyE33), numLevs);
-    cs = plt.contourf(KY, Z, kyE33[1:,1:], levels);
+    cs = plt.contourf(myX, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
     plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
     plt.title(r'$k_'+span+' E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
-    mySaveFig('sp1dky_KY_', 0)
+    mySaveFig('sp1dky_'+tag, 0)
     
 if sp1dkx_plot:
     sp1dkx_uu = np.load(datdir+'sp1dkx_uu.npy')

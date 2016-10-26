@@ -81,9 +81,9 @@ if isfile(filename2):
     fig = plt.figure(figsize=(12,6))
     kxs = np.array(range(0,32))
     plt.plot(kxs,kxnorm[0,0:32],'-og')
-    f = 1.0/kxs
+    f = 0.14*kxs**(-1.0)
     plt.plot(kxs,f,'-ob')
-    plt.savefig('kxs.png')
+    plt.savefig('kxs_' + runName + '.png')
 
 
 

@@ -10,7 +10,7 @@ from os import getcwd, system
 
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
-snapshots  = 0;    thisSnap = 5000;
+snapshots  = 1;    thisSnap = 250300;
 fourier    = 1;
 spectra_jb = 1;
 

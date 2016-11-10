@@ -15,19 +15,19 @@ from os import getcwd, system
 
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 1;
-uXMean_plot     = 1;
-tau_plot        = 1;
+vel_avg_plot    = 0;
+uXMean_plot     = 0;
+tau_plot        = 0;
 spanSpec_plot   = 0;
-sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 1;
+rs_plot         = 0;
 vel2_rs_plot    = 0;
-snap_plot_xy    = 1;
+snap_plot_xy    = 1;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 1;
-snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
+#snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
 
 mkm = 0;   # reference DNS data from MKM 1999
 
@@ -717,13 +717,14 @@ if snap_plot_xy:
     for k in range(2,3):
         scale = 3.0
         fig = plt.figure(figsize=(scale*Lx,scale*Ly))
-        cs = plt.contourf(X, Y, snap[0,k,:,:])
+        cs = plt.contourf(X, Y, snap[0,k,:,:]); csName = 'xyCon_' 
         cbar = plt.colorbar()
         plt.xlabel(r'$ x / H $', fontsize=18); 
         plt.ylabel(r'$'+span+' / H $', fontsize=18); 
         plt.tight_layout()
         #fig.show()
         #plt.savefig(figdir+'xy_'+str(k)+'.png', dpi=100)
+	mySaveFig(csName, 0)
 
 if snap_plot_yz:
     snap = np.load(datdir+'snap.npy')

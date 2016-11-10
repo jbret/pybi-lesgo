@@ -11,7 +11,7 @@ from os import getcwd, system
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 5000;
-fourier    = 0;
+fourier    = 1;
 spectra_jb = 1;
 
 myDir = getcwd(); dirParts = myDir.split("/")

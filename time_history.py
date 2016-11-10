@@ -79,18 +79,11 @@ if isfile(filename2):
     #fig.show()
 
     fig = plt.figure(figsize=(12,6))
-    kxs = np.array(range(0,32))
-    plt.plot(kxs,kxnorm[0,0:32],'-og')
-    f = 0.14*kxs**(-1.0)
-    plt.plot(kxs,f,'-ob')
-    plt.savefig('kxs_' + runName + '.png')
-
-
-
-
-
-
-
+    #kxs = np.array(range(0,32))
+    #plt.plot(kxs,kxnorm[0,0:32],'-og')
+    #f = 0.14*kxs**(-1.0)
+    #plt.plot(kxs,f,'-ob')
+    #plt.savefig('kxs_' + runName + '.png')
 
 else:
     print ">>>> File "+filename2+" is not present!"

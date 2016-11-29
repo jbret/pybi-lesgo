@@ -13,20 +13,36 @@ from subprocess import check_output
 from read_lesgo_bin import readmyfile
 from os import getcwd, system
 
+matplotlib.rcParams['lines.linewidth'] = 1.5
+matplotlib.rcParams['legend.numpoints'] = 1
+matplotlib.rcParams['lines.markersize'] = 8
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['xtick.major.pad'] = 10
+matplotlib.rcParams['xtick.labelsize'] = 18
+matplotlib.rcParams['ytick.major.pad'] = 10
+matplotlib.rcParams['ytick.labelsize'] = 18
+matplotlib.rcParams['axes.labelsize'] = 34 # 34 for paper
+matplotlib.rcParams['legend.fontsize'] = 22
+matplotlib.rcParams.update({'figure.autolayout': True})
+
+# For font types (Journal does not accept type 3 fonts)
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 0;
+vel_avg_plot    = 1;
 uXMean_plot     = 0;
-tau_plot        = 0;
+tau_plot        = 1;
 spanSpec_plot   = 0;
-sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 0;
+rs_plot         = 1;
 vel2_rs_plot    = 0;
-snap_plot_xy    = 1;   thisSnap = 250300;  # on uv-grid
-snap_plot_yz    = 1;
+snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
+snap_plot_yz    = 0;
 #snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
 
 mkm = 0;   # reference DNS data from MKM 1999
@@ -101,15 +117,15 @@ if vel_avg_plot:
     plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', 
                  label=r'$1/\kappa \ \mathrm{log}('+vert+'/'+vert+'_{0})$')
     #plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
-    plt.xlabel('$'+vert+' / H $', fontsize=18);
-    #plt.xlabel('$'+vert+'^{+} $', fontsize=18);
-    plt.ylabel('$[\ u / u_*]$', fontsize=18); 
+    plt.xlabel('$'+vert+' / H $');
+    #plt.xlabel('$'+vert+'^{+} $');
+    plt.ylabel('$[\ u / u_*]$'); 
     #plt.xlim([.02 ,1.1])
     #plt.xlim([1, 1000])
-    plt.text(.3,3,r'$ \kappa = 0.4,\ '+vert+'_{0} = 10^{-4} $', fontsize=14)
+    plt.text(.2,6,r'$ \kappa = 0.4,\ '+vert+'_{0} = 10^{-4} $', fontsize=16)
     #plt.text(.06,1,r'$ \kappa = 0.4,\ '+vert+'_{0} = 10^{-4} $', fontsize=14)
-    plt.xticks([10**(-2), 10**(-1), 10**0], fontsize = 16)
-    plt.yticks([0,5,10,15,20,25], fontsize = 16)
+    plt.xticks([10**(-2), 10**(-1), 10**0])
+    plt.yticks([0,5,10,15,20,25])
 
     if mkm:
         yp180 = np.load('yp180.npy')
@@ -117,7 +133,7 @@ if vel_avg_plot:
         plt.semilogx(yp180, Umean180,'o',label=r'$MKM99, DNS, Re_{\tau} = 180 $')
 
     plt.text(110,2.5,r'$ \kappa = 0.41,\ B = 5.0 $', fontsize=14)
-    plt.legend(loc='lower right', fontsize=14)
+    plt.legend(loc='lower right')
     plt.tight_layout()
 
     mySaveFig('mvp_', 0)
@@ -129,8 +145,8 @@ if uXMean_plot:
     uXMean = np.load(datdir+'uXMean.npy')
     cs = plt.contourf(Y, Z, uXMean[:,:], vmin=0, vmax=17)
     cbar = plt.colorbar()
-    plt.xlabel('$'+span+' / H $', fontsize=18); 
-    plt.ylabel('$'+vert+' / H $', fontsize=18);
+    plt.xlabel('$'+span+' / H $'); 
+    plt.ylabel('$'+vert+' / H $');
     #plt.suptitle('Streamwise velocity contours', fontsize = 16)
     # now make a circle with no fill, which is good for hilighting key results
     circle1=plt.Circle((0.261799, 0.1),.05,color='k',fill=False)
@@ -163,8 +179,8 @@ if tau_plot:
     plt.plot(line, 1+-1.0*line, '--', color='k')
     plt.plot(line, np.ones(len(line))*0.15, '--', color='k')
     plt.plot(line, np.ones(len(line))*0.05, '--', color='k')
-    plt.xlabel('$ \mathrm{Stress} $', fontsize=18); 
-    plt.ylabel('$'+vert+' / H $', fontsize=18)
+    plt.xlabel('$ \mathrm{Stress} $'); 
+    plt.ylabel('$'+vert+' / H $')
     plt.legend()
     plt.tight_layout()
     mySaveFig('tau_', 0)
@@ -261,7 +277,8 @@ if sp1dky_plot:
         xlab = '$ \delta k_'+span+'$';   ylab = '$'+vert+' / \delta $';
         myX, Z = np.meshgrid(ky[1:], z[1:])
         tag = 'KY_'
-    myFS = 18;
+    subplot_fs  = 18;
+    subplot_fs2 = 14;
     numLevs = 100;
 
     fig = plt.figure(figsize=(12,4))
@@ -271,7 +288,8 @@ if sp1dky_plot:
     kyE11plot = kyE11[1:,1:]
     cs = plt.contourf(myX, Z, kyE11plot, levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab, fontsize=subplot_fs);   plt.ylabel(ylab, fontsize=subplot_fs);
+    plt.xticks(fontsize=subplot_fs2);  plt.yticks([10**(-1), 10**0],fontsize=subplot_fs2) 
     plt.title(r'$k_'+span+r' E_{uu} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
@@ -281,21 +299,22 @@ if sp1dky_plot:
     print "peak1: ", kyE11plot[imax1,jmax1], myX[imax1,jmax1], Z[imax1,jmax1]
     print "peak2: ", kyE11plot[imax2,jmax2], myX[imax2,jmax2], Z[imax2,jmax2]
 
-    arbNum = 50;
-    plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
-    plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
-    plt.plot(np.ones(arbNum)*myX[imax2,jmax2], np.linspace(0,1,arbNum),'--',color='white')
-    plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax2,jmax2],'--',color='white')
-    #plt.plot(myX[imax1,jmax1], Z[imax1,jmax1],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
-    #plt.plot(myX[imax2,jmax2+kysplit], Z[imax2,jmax2+kysplit],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
-    plt.text(1.1,0.1,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
-    plt.text(10,0.1,str(myX[imax2,jmax2])+', '+str(Z[imax2,jmax2]), fontsize=12, color='white')
+    #arbNum = 50;
+    #plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0.01,1,arbNum),'--',color='white')
+    #plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+    #plt.plot(np.ones(arbNum)*myX[imax2,jmax2], np.linspace(0.01,1,arbNum),'--',color='white')
+    #plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax2,jmax2],'--',color='white')
+    ##plt.plot(myX[imax1,jmax1], Z[imax1,jmax1],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
+    ##plt.plot(myX[imax2,jmax2+kysplit], Z[imax2,jmax2+kysplit],'o',color='white',markersize=7,markeredgewidth='2', fillstyle='none')
+    #plt.text(1.1,0.1,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
+    #plt.text(10,0.1,str(myX[imax2,jmax2])+', '+str(Z[imax2,jmax2]), fontsize=12, color='white')
     
     ax = fig.add_subplot(2,2,2)
     levels = np.linspace(np.min(kyE13), np.max(kyE13), numLevs);
     cs = plt.contourf(myX, Z, kyE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab, fontsize=subplot_fs);   plt.ylabel(ylab, fontsize=subplot_fs); 
+    plt.xticks(fontsize=subplot_fs2);  plt.yticks([10**(-1), 10**0],fontsize=subplot_fs2) 
     plt.title(r'$k_'+span+' E_{u'+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
@@ -303,22 +322,24 @@ if sp1dky_plot:
     levels = np.linspace(np.min(kyE22), np.max(kyE22), numLevs);
     cs = plt.contourf(myX, Z, kyE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab, fontsize=subplot_fs);   plt.ylabel(ylab, fontsize=subplot_fs); 
+    plt.xticks(fontsize=subplot_fs2);  plt.yticks([10**(-1), 10**0],fontsize=subplot_fs2) 
     plt.title(r'$k_'+span+' E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
-    imax1,jmax1 = np.unravel_index(np.argmax(kyE22),np.shape(kyE22))
-    plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
-    plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
-    #plt.plot(np.ones(arbNum)*28, np.linspace(0,1,arbNum),'--',color='white')
-    #plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*0.04,'--',color='white')
-    plt.text(1.1,0.02,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
+    #imax1,jmax1 = np.unravel_index(np.argmax(kyE22),np.shape(kyE22))
+    #plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0.01,1,arbNum),'--',color='white')
+    #plt.plot(np.linspace(1,ny/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+    ##plt.plot(np.ones(arbNum)*28, np.linspace(0.01,1,arbNum),'--',color='white')
+    ##plt.plot(np.linspace(0,ny/2, arbNum),np.ones(arbNum)*0.04,'--',color='white')
+    #plt.text(1.1,0.02,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
 
     ax = fig.add_subplot(2,2,4)
     levels = np.linspace(np.min(kyE33), np.max(kyE33), numLevs);
     cs = plt.contourf(myX, Z, kyE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab, fontsize=subplot_fs);   plt.ylabel(ylab, fontsize=subplot_fs); 
+    plt.xticks(fontsize=subplot_fs2);  plt.yticks([10**(-1), 10**0],fontsize=subplot_fs2) 
     plt.title(r'$k_'+span+' E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
@@ -351,7 +372,6 @@ if sp1dkx_plot:
         xlab = '$ \delta k_x$';   ylab = '$'+vert+' / \delta $';
         myX, Z = np.meshgrid(kx[1:], z[1:])
         tag = 'KX_'
-    myFS = 18;
     numLevs = 100;
 
     fig = plt.figure(figsize=(12,4))
@@ -361,7 +381,7 @@ if sp1dkx_plot:
     kxE11plot = kxE11[1:,1:]
     cs = plt.contourf(myX, Z, kxE11plot, levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
     plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
@@ -378,7 +398,7 @@ if sp1dkx_plot:
     levels = np.linspace(np.min(kxE13), np.max(kxE13), numLevs);
     cs = plt.contourf(myX, Z, kxE13[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
     plt.title(r'$k_x E_{u'+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
     
@@ -386,7 +406,7 @@ if sp1dkx_plot:
     levels = np.linspace(np.min(kxE22), np.max(kxE22), numLevs);
     cs = plt.contourf(myX, Z, kxE22[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
     plt.title(r'$k_x E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
@@ -399,7 +419,7 @@ if sp1dkx_plot:
     levels = np.linspace(np.min(kxE33), np.max(kxE33), numLevs);
     cs = plt.contourf(myX, Z, kxE33[1:,1:], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
     plt.title(r'$k_x E_{'+vertvel+vertvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
@@ -434,7 +454,7 @@ if sp2d_plot_vert:
     #levels = np.linspace(np.min(suu[:,:,m1]), np.max(suu[:,:,m1]), numLevs)
     cs = plt.contourf(LAMY, Z, suu[1:,1:,m1]) #, levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);  plt.ylabel(ylab); 
     #plt.title(r'$E_{uu} all k_x$')
     plt.title( '$E_{uu}, k_x = '+str(m1)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
@@ -443,7 +463,7 @@ if sp2d_plot_vert:
     levels = np.linspace(np.min(suu[:,:,m2]), np.max(suu[:,:,m2]), numLevs)
     cs = plt.contourf(LAMY, Z, suu[1:,1:,m2], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);  plt.ylabel(ylab); 
     plt.title( '$E_{uu}, k_x = '+str(m2)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
      
@@ -451,7 +471,7 @@ if sp2d_plot_vert:
     levels = np.linspace(np.min(suu[:,:,m3]), np.max(suu[:,:,m3]), numLevs)
     cs = plt.contourf(LAMY, Z, suu[1:,1:,m3], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);  plt.ylabel(ylab); 
     plt.title( '$E_{uu}, k_x = '+str(m3)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
     
@@ -459,7 +479,7 @@ if sp2d_plot_vert:
     levels = np.linspace(np.min(suu[:,:,m4]), np.max(suu[:,:,m4]), numLevs)
     cs = plt.contourf(LAMY, Z, suu[1:,1:,m4], levels);
     ax.set_xscale('log');  ax.set_yscale('log')
-    plt.xlabel(xlab, fontsize = myFS);  plt.ylabel(ylab, fontsize = myFS); 
+    plt.xlabel(xlab);  plt.ylabel(ylab); 
     plt.title( '$E_{uu}, k_x = '+str(m4)+'$' )
     cbar = plt.colorbar();   plt.tight_layout()
 
@@ -527,14 +547,14 @@ if sp2d_plot_horiz:
         levels = np.linspace(minX, maxX, numLevs)
         cs = plt.contourf(KX, KY, sliceX, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
-        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.xlabel(xlab);   plt.ylabel(ylab);
         plt.title(r'$E_{uu}$'); cbar = plt.colorbar();    plt.tight_layout()
 
         ax = fig.add_subplot(1,3,2)
         levels = np.linspace(minY, maxY, numLevs)
         cs = plt.contourf(KX, KY, sliceY, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
-        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.xlabel(xlab);   plt.ylabel(ylab);
         plt.title(r'$E_{'+spanvel+spanvel+'}$'); 
         cbar = plt.colorbar();    plt.tight_layout()
 
@@ -542,7 +562,7 @@ if sp2d_plot_horiz:
         levels = np.linspace(minZ, maxZ, numLevs)
         cs = plt.contourf(KX, KY, sliceZ, levels);
         ax.set_xscale('log');  ax.set_yscale('log')
-        plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+        plt.xlabel(xlab);   plt.ylabel(ylab);
         plt.title(r'$E_{'+vertvel+vertvel+'}$'); 
         cbar = plt.colorbar();    plt.tight_layout()
 
@@ -553,7 +573,7 @@ if sp2d_plot_horiz:
     #levels = np.linspace(np.min(slice2), np.max(slice2), numLevs)
     #cs = plt.contourf(KX, KY, slice2, levels);
     #ax.set_xscale('log');  ax.set_yscale('log')
-    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.xlabel(xlab);   plt.ylabel(ylab);
     #plt.title(r'$E_{uu}$')
     #cbar = plt.colorbar();    plt.tight_layout()
      
@@ -561,7 +581,7 @@ if sp2d_plot_horiz:
     #levels = np.linspace(np.min(slice3), np.max(slice3), numLevs)
     #cs = plt.contourf(KX, KY, slice3, levels);
     #ax.set_xscale('log');  ax.set_yscale('log')
-    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.xlabel(xlab);   plt.ylabel(ylab);
     #plt.title(r'$E_{uu}$')
     #cbar = plt.colorbar();    plt.tight_layout()
     
@@ -569,7 +589,7 @@ if sp2d_plot_horiz:
     #levels = np.linspace(np.min(slice4), np.max(slice4), numLevs)
     #cs = plt.contourf(KX, KY, slice4, levels);
     #ax.set_xscale('log');  ax.set_yscale('log')
-    #plt.xlabel(xlab, fontsize = myFS);   plt.ylabel(ylab, fontsize = myFS);
+    #plt.xlabel(xlab);   plt.ylabel(ylab);
     #plt.title(r'$E_{uu}$')
     #cbar = plt.colorbar();    plt.tight_layout()
 
@@ -598,11 +618,9 @@ if rs_plot:
     #L6=plt.plot(z, rs12Mean, 'o', color='k', 
     #            label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
     plt.legend(loc='upper right',ncol=2)
-    plt.xlabel(r'$'+vert+' / H $', fontsize=18); 
-    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    plt.xlabel(r'$'+vert+' / H $'); 
+    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $')
     plt.ylim([-2, 20])
-    plt.xticks(fontsize = 16)
-    plt.yticks(fontsize = 16)
     plt.tight_layout()
     #plt.subplot(2,1,2)
     #Re = 180; zp = z/(1./Re)
@@ -613,7 +631,7 @@ if rs_plot:
     #L5=plt.plot(zp, rs23Mean, 'o', color='m', label = r'$[ v^{\prime} w^{\prime}]$')
     #L6=plt.plot(zp, rs12Mean, 'o', color='k', label = r'$[ u^{\prime} v^{\prime}]$')
     #plt.legend(loc='upper right',ncol=2)
-    #plt.xlabel(r'$ z^{+} $', fontsize=18); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    #plt.xlabel(r'$ z^{+} $'); plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $')
     #plt.tight_layout()
     mySaveFig('rs_', 0)
 
@@ -629,9 +647,9 @@ if rs_plot:
     #            label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
     #L6=plt.plot(z, rs12Mean, 'o', color='k', 
     #            label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
-    plt.legend(loc='upper right',ncol=2)
-    plt.xlabel(r'$ '+vert+' / H $', fontsize=18); 
-    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+    plt.legend(loc='upper right',ncol=1)
+    plt.xlabel(r'$ '+vert+' / H $'); 
+    plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $')
     plt.tight_layout()
     mySaveFig('rs2_', 0)
 
@@ -666,8 +684,8 @@ if rs_plot:
             L12=plt.plot(z, uvMean, linewidth=3, color='k', 
                          label = r'$[ u'+spanvel+' ]$')
             plt.legend(loc='lower right',ncol=2)
-            plt.xlabel(r'$ '+vert+' / H $', fontsize=18); 
-            plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $', fontsize=18)
+            plt.xlabel(r'$ '+vert+' / H $'); 
+            plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $')
             plt.tight_layout()
             mySaveFig('vel2_rs_', 0)
 
@@ -719,8 +737,8 @@ if snap_plot_xy:
         fig = plt.figure(figsize=(scale*Lx,scale*Ly))
         cs = plt.contourf(X, Y, snap[0,k,:,:]); csName = 'xyCon_' 
         cbar = plt.colorbar()
-        plt.xlabel(r'$ x / H $', fontsize=18); 
-        plt.ylabel(r'$'+span+' / H $', fontsize=18); 
+        plt.xlabel(r'$ x / H $'); 
+        plt.ylabel(r'$'+span+' / H $'); 
         plt.tight_layout()
         #fig.show()
         #plt.savefig(figdir+'xy_'+str(k)+'.png', dpi=100)
@@ -735,8 +753,8 @@ if snap_plot_yz:
         cs = plt.contourf(Y, Z, snap[0,:,:,i]);  csName = 'yzCon_'
         #cs = plt.pcolor(Y, Z, snap[0,:,:,i]);  csName = 'yzCol_'
         cbar = plt.colorbar()
-        plt.xlabel(r'$'+span+' / H $', fontsize=18); 
-        plt.ylabel(r'$'+vert+' / H $', fontsize=18); 
+        plt.xlabel(r'$'+span+' / H $'); 
+        plt.ylabel(r'$'+vert+' / H $'); 
         plt.tight_layout()
         mySaveFig(csName, 0)
 

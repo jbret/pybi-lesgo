@@ -11,7 +11,7 @@ from os import getcwd, system
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
-fourier    = 1;
+fourier    = 0;
 spectra_jb = 1;
 
 myDir = getcwd(); dirParts = myDir.split("/")
@@ -86,6 +86,14 @@ if avg:
         sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
         sp1dkx[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
+
+    spvort  = np.zeros((5,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_spvort.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        sp1d_i = np.reshape(filecontents, (5,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        spvort[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
 
     rs = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
@@ -184,11 +192,15 @@ if spectra_jb:
     sp2dci  = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
     # stored in (kx) space
     sp1dkxc   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
+    # only the fifth entry is in kx space
+    spvortc   = np.zeros((nz,ny,nx), dtype=complex) # (kx, y,z)
 
     # re-arrange real-valued arrays into complex-valued arrays
     for i in range(0,nx/2):
         b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
         sp1dkxc[:,:,:,i]  =  sp1dkx[:,:,:,a] + 1j * sp1dkx[:,:,:,b]
+        # only the fifth entry (index 4) is in kx space
+        spvortc[:,:,i]  =  spvort[4,:,:,a] + 1j * spvort[4,:,:,b]
         sp2dc[:,:,:,i]    =  sp2d[:,:,:,a]   + 1j * sp2d[:,:,:,b]
 
     # go from kx,ky space to kx space
@@ -204,6 +216,7 @@ if spectra_jb:
     # clean up and rename
     #snap = np.real(snapci)
     sp1dkx = np.real(sp1dkxc)
+    spvort[4,:,:,:] = np.real(spvortc)
     sp2d   = np.real(sp2dc)
     
 else:
@@ -245,6 +258,11 @@ sp1dkx_ww =   sp1dkx[2,:,:,:]
 sp1dkx_uw =   sp1dkx[3,:,:,:] 
 sp1dkx_vw =   sp1dkx[4,:,:,:] 
 sp1dkx_uv =   sp1dkx[5,:,:,:]
+spvort_vortx = spvort[0,:,:,:] 
+spvort_vorty = spvort[1,:,:,:] 
+spvort_vortz = spvort[2,:,:,:] 
+spvort_vortp = spvort[3,:,:,:] 
+spvort_vorts = spvort[4,:,:,:] 
 txx  =  tau[0,:,:,:] 
 txy  =  tau[1,:,:,:] 
 tyy  =  tau[2,:,:,:]
@@ -336,6 +354,11 @@ np.save(datdir+'sp1dkx_ww', sp1dkx_ww)
 np.save(datdir+'sp1dkx_uw', sp1dkx_uw)
 np.save(datdir+'sp1dkx_vw', sp1dkx_vw)
 np.save(datdir+'sp1dkx_uv', sp1dkx_uv)
+np.save(datdir+'spvort_vortx', spvort_vortx)
+np.save(datdir+'spvort_vorty', spvort_vorty)
+np.save(datdir+'spvort_vortz', spvort_vortz)
+np.save(datdir+'spvort_vortp', spvort_vortp)
+np.save(datdir+'spvort_vorts', spvort_vorts)
 np.save(datdir+'txx', txx)
 np.save(datdir+'tyy', tyy)
 np.save(datdir+'tzz', tzz)

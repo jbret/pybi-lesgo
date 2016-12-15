@@ -31,15 +31,16 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 1;
+vel_avg_plot    = 0;
 uXMean_plot     = 0;
-tau_plot        = 1;
+tau_plot        = 0;
 spanSpec_plot   = 0;
-sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
+spvort_plot     = 1;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 1;
+rs_plot         = 0;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 0;
@@ -424,6 +425,52 @@ if sp1dkx_plot:
     cbar = plt.colorbar();    plt.tight_layout()
 
     mySaveFig('sp1dkx_'+tag, 0)
+
+if spvort_plot:
+    spvort_vorts = np.load(datdir+'spvort_vorts.npy')
+    spvort_vortp = np.load(datdir+'spvort_vortp.npy')
+
+    # spanwise average
+    e11 = np.mean(spvort_vorts[:,:,:], axis=1)
+    e11p = np.mean(spvort_vortp[:,:,:], axis=1)
+
+    kx = np.arange(0,nx/2)
+    lamX = Lx / kx
+    
+    kxE11 = kx * e11[:,0:nx/2]
+
+    if plot_wavelen:  # plot by wavelength
+        xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';
+        myX, Z = np.meshgrid(lamX[1:], z[1:])
+        tag = 'LAMX_'
+    else:             # plot by wavenumber
+        xlab = '$ \delta k_x$';   ylab = '$'+vert+' / \delta $';
+        myX, Z = np.meshgrid(kx[1:], z[1:])
+        tag = 'KX_'
+    numLevs = 100;
+
+    fig = plt.figure()
+    levels = np.linspace(np.min(kxE11), np.max(kxE11), numLevs);
+    kxE11plot = kxE11[1:,1:]
+    cs = plt.contourf(myX, Z, kxE11plot, levels);
+    #ax.set_xscale('log');  ax.set_yscale('log')
+    plt.yscale('log'); plt.xscale('log')
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
+    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    mySaveFig('spvorts_'+tag, 0)
+
+    fig = plt.figure()
+    #levels = np.linspace(np.min(e11p), np.max(e11p), numLevs);
+    X, Z = np.meshgrid(x, z)
+    cs = plt.contourf(X[:,:], Z[:,:], e11p[:,:]);
+    #plt.yscale('log'); plt.xscale('log')
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
+    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+
+    mySaveFig('spvortp_'+tag, 0)
     
 if sp2d_plot_vert:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')

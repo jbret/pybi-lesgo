@@ -37,7 +37,7 @@ tau_plot        = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;
+spvort_plot     = 1;  comp_only = 1;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -411,10 +411,10 @@ if sp1dkx_plot:
     plt.title(r'$k_x E_{'+spanvel+spanvel+r'} / u_{\tau}^2 $')
     cbar = plt.colorbar();    plt.tight_layout()
 
-    imax1,jmax1 = np.unravel_index(np.argmax(kxE22),np.shape(kxE22))
-    plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
-    plt.plot(np.linspace(1,nx/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
-    plt.text(1.1,0.08,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
+    #imax1,jmax1 = np.unravel_index(np.argmax(kxE22),np.shape(kxE22))
+    #plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(0,1,arbNum),'--',color='white')
+    #plt.plot(np.linspace(1,nx/2-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+    #plt.text(1.1,0.08,str(myX[imax1,jmax1])+', '+str(Z[imax1,jmax1]), fontsize=12, color='white')
 
     ax = fig.add_subplot(2,2,4)
     levels = np.linspace(np.min(kxE33), np.max(kxE33), numLevs);
@@ -427,17 +427,43 @@ if sp1dkx_plot:
     mySaveFig('sp1dkx_'+tag, 0)
 
 if spvort_plot:
+    # NOTE: Figures created through the pyplot interface (`matplotlib.pyplot.figure`) 
+    # are retained until explicitly closed and may consume too much memory.
+    # Could have problems if over 20 figures are opened.
     spvort_vorts = np.load(datdir+'spvort_vorts.npy')
     spvort_vortp = np.load(datdir+'spvort_vortp.npy')
+    spvort_vortx = np.load(datdir+'spvort_vortx.npy')
+    spvort_vorty = np.load(datdir+'spvort_vorty.npy')
+    spvort_vortz = np.load(datdir+'spvort_vortz.npy')
+    spvort_vortsx = np.load(datdir+'spvort_vortsx.npy')
+    spvort_vortsy = np.load(datdir+'spvort_vortsy.npy')
+    spvort_vortsz = np.load(datdir+'spvort_vortsz.npy')
 
     # spanwise average
-    e11 = np.mean(spvort_vorts[:,:,:], axis=1)
-    e11p = np.mean(spvort_vortp[:,:,:], axis=1)
+    ep = np.mean(spvort_vortp[:,:,:], axis=1)
+    ep_cross = np.mean(spvort_vortp[:,:,:], axis=2)
+    ep_cross2 = np.mean(spvort_vortp[:,:,:], axis=0)
+    ex = np.mean(spvort_vortx[:,:,:], axis=1)
+    ex_cross = np.mean(spvort_vortx[:,:,:], axis=2)
+    ex_cross2 = np.mean(spvort_vortx[:,:,:], axis=0)
+    ey = np.mean(spvort_vorty[:,:,:], axis=1)
+    ey_cross = np.mean(spvort_vorty[:,:,:], axis=2)
+    ey_cross2 = np.mean(spvort_vorty[:,:,:], axis=0)
+    ez = np.mean(spvort_vortz[:,:,:], axis=1)
+    ez_cross = np.mean(spvort_vortz[:,:,:], axis=2)
+    ez_cross2 = np.mean(spvort_vortz[:,:,:], axis=0)
+    es = np.mean(spvort_vorts[:,:,:], axis=1)
+    esx = np.mean(spvort_vortsx[:,:,:], axis=1)
+    esy = np.mean(spvort_vortsy[:,:,:], axis=1)
+    esz = np.mean(spvort_vortsz[:,:,:], axis=1)
 
     kx = np.arange(0,nx/2)
     lamX = Lx / kx
     
-    kxE11 = kx * e11[:,0:nx/2]
+    kxEs = kx * es[:,0:nx/2]
+    kxEsx = kx * esx[:,0:nx/2]
+    kxEsy = kx * esy[:,0:nx/2]
+    kxEsz = kx * esz[:,0:nx/2]
 
     if plot_wavelen:  # plot by wavelength
         xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';
@@ -449,29 +475,152 @@ if spvort_plot:
         tag = 'KX_'
     numLevs = 100;
 
-    fig = plt.figure()
-    levels = np.linspace(np.min(kxE11), np.max(kxE11), numLevs);
-    kxE11plot = kxE11[1:,1:]
-    cs = plt.contourf(myX, Z, kxE11plot, levels);
-    #ax.set_xscale('log');  ax.set_yscale('log')
-    plt.yscale('log'); plt.xscale('log')
-    plt.xlabel(xlab);   plt.ylabel(ylab); 
-    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
+    if comp_only == 0:
+        fig = plt.figure()
+        levels = np.linspace(np.min(kxEs), np.max(kxEs), numLevs);
+        kxEsplot = kxEs[1:,1:]
+        cs = plt.contourf(myX, Z, kxEsplot, levels);
+        plt.yscale('log'); plt.xscale('log')
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vorts_'+tag, 0); plt.close()
 
-    mySaveFig('spvorts_'+tag, 0)
+        fig = plt.figure()
+        levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);
+        kxEsxplot = kxEsx[1:,1:]
+        cs = plt.contourf(myX, Z, kxEsxplot, levels);
+        plt.yscale('log'); plt.xscale('log')
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortsx_'+tag, 0); plt.close()
 
-    fig = plt.figure()
-    #levels = np.linspace(np.min(e11p), np.max(e11p), numLevs);
-    X, Z = np.meshgrid(x, z)
-    cs = plt.contourf(X[:,:], Z[:,:], e11p[:,:]);
-    #plt.yscale('log'); plt.xscale('log')
-    plt.xlabel(xlab);   plt.ylabel(ylab); 
-    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-    cbar = plt.colorbar();    plt.tight_layout()
+        fig = plt.figure()
+        levels = np.linspace(np.min(kxEsy), np.max(kxEsy), numLevs);
+        kxEsyplot = kxEsy[1:,1:]
+        cs = plt.contourf(myX, Z, kxEsyplot, levels);
+        plt.yscale('log'); plt.xscale('log')
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortsy_'+tag, 0); plt.close()
+        
+        fig = plt.figure()
+        levels = np.linspace(np.min(kxEsz), np.max(kxEsz), numLevs);
+        kxEszplot = kxEsz[1:,1:]
+        cs = plt.contourf(myX, Z, kxEszplot, levels);
+        plt.yscale('log'); plt.xscale('log')
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortsz_'+tag, 0); plt.close()
 
-    mySaveFig('spvortp_'+tag, 0)
-    
+        fig = plt.figure()
+        X, Z = np.meshgrid(x, z)
+        cs = plt.contourf(X[:,:], Z[:,:], ep[:,:]);
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortp_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        cs = plt.contourf(Y[:,:], Z[:,:], ep_cross[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortp_cross_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Y = np.meshgrid(x, y)
+        cs = plt.contourf(X[:,:], Y[:,:], ep_cross2[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortp_cross2_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Z = np.meshgrid(x, z)
+        cs = plt.contourf(X[:,:], Z[:,:], ex[:,:]);
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortx_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        cs = plt.contourf(Y[:,:], Z[:,:], ex_cross[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortx_cross_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Y = np.meshgrid(x, y)
+        cs = plt.contourf(X[:,:], Y[:,:], ex_cross2[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortx_cross2_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Z = np.meshgrid(x, z)
+        cs = plt.contourf(X[:,:], Z[:,:], ey[:,:]);
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vorty_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        cs = plt.contourf(Y[:,:], Z[:,:], ey_cross[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vorty_cross_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Y = np.meshgrid(x, y)
+        cs = plt.contourf(X[:,:], Y[:,:], ey_cross2[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vorty_cross2_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Z = np.meshgrid(x, z)
+        cs = plt.contourf(X[:,:], Z[:,:], ez[:,:]);
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortz_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        cs = plt.contourf(Y[:,:], Z[:,:], ez_cross[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortz_cross_'+tag, 0); plt.close()
+
+        fig = plt.figure()
+        X, Y = np.meshgrid(x, y)
+        cs = plt.contourf(X[:,:], Y[:,:], ez_cross2[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortz_cross2_'+tag, 0); plt.close()
+    else:
+        # Sum spectra and compare
+        #compx_ = esz[:,0:nx/2]
+        #compx_[:,1:nx/2] = compx_[:,1:nx/2] + compx_[:,1:nx/2]
+        #compx = np.sum(compx_, axis=1)
+        #fig = plt.figure()
+        #comp  = np.mean(ez,axis=1)
+        #plt.plot(z, comp,'sg')
+        #plt.plot(z, compx,'or')
+        
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        ax = fig.add_subplot(1,2,1)
+        cs = plt.contourf(Y[:,:], Z[:,:], ep_cross[:,:]);
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        ax = fig.add_subplot(1,2,2)
+        comp = np.sum(np.sqrt(spvort_vorts[:,:,:]), axis=2)
+        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('compx',0); plt.close()
+
 if sp2d_plot_vert:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')
     sp2d_uw = np.load(datdir+'sp2d_uw.npy')
@@ -715,10 +864,10 @@ if rs_plot:
                         label = r'$[ '+vertvel+'^{\prime} '+vertvel+'^{\prime}]$')
             L4=plt.plot(z, -1*rs13Mean, 'o', color='c', 
                         label = r'$[ u^{\prime} '+vertvel+'^{\prime}]$')
-            L5=plt.plot(z, rs23Mean, 'o', color='m', 
-                        label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
-            L6=plt.plot(z, rs12Mean, 'o', color='k', 
-                        label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
+            #L5=plt.plot(z, rs23Mean, 'o', color='m', 
+            #            label = r'$[ '+spanvel+'^{\prime} '+vertvel+'^{\prime}]$')
+            #L6=plt.plot(z, rs12Mean, 'o', color='k', 
+            #            label = r'$[ u^{\prime} '+spanvel+'^{\prime}]$')
             #L7=plt.plot(z, uuMean, color='b', label = r'$[ uu ]$')
             L8=plt.plot(z, vvMean, linewidth=3, color='g', 
                         label = r'$[ '+spanvel+spanvel+' ]$')
@@ -726,10 +875,10 @@ if rs_plot:
                         label = r'$[ '+vertvel+vertvel+' ]$')
             L10=plt.plot(z, -1*uwMean, linewidth=3, color='c', 
                          label = r'$[ u'+vertvel+' ]$')
-            L11=plt.plot(z, vwMean, linewidth=3, color='m', 
-                         label = r'$[ '+spanvel+vertvel+' ]$')
-            L12=plt.plot(z, uvMean, linewidth=3, color='k', 
-                         label = r'$[ u'+spanvel+' ]$')
+            #L11=plt.plot(z, vwMean, linewidth=3, color='m', 
+            #             label = r'$[ '+spanvel+vertvel+' ]$')
+            #L12=plt.plot(z, uvMean, linewidth=3, color='k', 
+            #             label = r'$[ u'+spanvel+' ]$')
             plt.legend(loc='lower right',ncol=2)
             plt.xlabel(r'$ '+vert+' / H $'); 
             plt.ylabel(r'$ [ u_{i}^{\prime} u_{i}^{\prime}]/u_{*}^{2} $')
@@ -750,7 +899,6 @@ if rs_plot:
             plt.plot(z[1:], comp11[1:], 'o', label='spect')
             plt.legend()
             mySaveFig('comp11', 0)
-
 
             sp22_1d = np.load(datdir+'sp1dky_vv.npy')
             fig = plt.figure()

@@ -37,7 +37,7 @@ tau_plot        = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;  comp_only = 1;
+spvort_plot     = 1;  comp_only = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -485,7 +485,10 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vorts_'+tag, 0); plt.close()
-
+        np.save('myX32',myX)
+        np.save('Z32',Z)
+        np.save('kxEsplot32',kxEsplot)
+        
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);
         kxEsxplot = kxEsx[1:,1:]
@@ -495,6 +498,7 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsx_'+tag, 0); plt.close()
+        np.save('kxEsxplot32',kxEsxplot)
 
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsy), np.max(kxEsy), numLevs);
@@ -505,7 +509,8 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsy_'+tag, 0); plt.close()
-        
+        np.save('kxEsyplot32',kxEsyplot)        
+
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsz), np.max(kxEsz), numLevs);
         kxEszplot = kxEsz[1:,1:]
@@ -515,6 +520,7 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsz_'+tag, 0); plt.close()
+        np.save('kxEszplot32',kxEszplot)
 
         fig = plt.figure()
         X, Z = np.meshgrid(x, z)
@@ -616,7 +622,9 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         ax = fig.add_subplot(1,2,2)
-        comp = np.sum(np.sqrt(spvort_vorts[:,:,:]), axis=2)
+        comp_ = spvort_vorts[:,:,0:]
+	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
+	comp = np.sum(comp_[:,:,:], axis=2)
         cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('compx',0); plt.close()

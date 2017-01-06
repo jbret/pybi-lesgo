@@ -34,10 +34,11 @@ RNL_branch = 1;    devel_branch = 0;
 vel_avg_plot    = 0;
 uXMean_plot     = 0;
 tau_plot        = 0;
+nu_t_plot       = 1;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;  comp_only = 0;
+spvort_plot     = 0;  comp_only = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -185,6 +186,17 @@ if tau_plot:
     plt.legend()
     plt.tight_layout()
     mySaveFig('tau_', 0)
+
+if nu_t_plot:
+    nu_tMean = np.load(datdir+'nu_tMean.npy')
+    fig = plt.figure()
+    plt.plot(nu_tMean, z, '-o', color='g', label = r'$[ \nu_T ]$')
+    # note below the 'r' needed before label (in order to render the \nu)
+    plt.xlabel(r'$[ \nu_T ]$'); 
+    plt.ylabel('$'+vert+' / H $')
+    plt.legend()
+    plt.tight_layout()
+    mySaveFig('nu_t_', 0)
 
 if spanSpec_plot:
     sp1dky_uu = np.load(datdir+'sp1dky_uu.npy')
@@ -485,9 +497,9 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vorts_'+tag, 0); plt.close()
-        np.save('myX32',myX)
-        np.save('Z32',Z)
-        np.save('kxEsplot32',kxEsplot)
+        #np.save('myX32',myX)
+        #np.save('Z32',Z)
+        #np.save('kxEsplot32',kxEsplot)
         
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);
@@ -498,7 +510,7 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsx_'+tag, 0); plt.close()
-        np.save('kxEsxplot32',kxEsxplot)
+        #np.save('kxEsxplot32',kxEsxplot)
 
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsy), np.max(kxEsy), numLevs);
@@ -509,7 +521,7 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsy_'+tag, 0); plt.close()
-        np.save('kxEsyplot32',kxEsyplot)        
+        #np.save('kxEsyplot32',kxEsyplot)        
 
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsz), np.max(kxEsz), numLevs);
@@ -520,7 +532,7 @@ if spvort_plot:
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortsz_'+tag, 0); plt.close()
-        np.save('kxEszplot32',kxEszplot)
+        #np.save('kxEszplot32',kxEszplot)
 
         fig = plt.figure()
         X, Z = np.meshgrid(x, z)

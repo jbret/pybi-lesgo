@@ -111,6 +111,14 @@ if avg:
         a = i*nz_;  b = (i+1)*nz_
         tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
 
+    nu_t = np.zeros((1,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_nu_t.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        nu_t_i = np.reshape(filecontents, (1,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        nu_t[:,a:b,:,:] = nu_t_i[:,0:nz_,:,:]
+
 snap  = np.zeros((3,nz,ny,nx))
 if snapshots:
     for i in range(0, nproc):
@@ -272,10 +280,14 @@ tyy  =  tau[2,:,:,:]
 txz  =  tau[3,:,:,:] 
 tyz  =  tau[4,:,:,:] 
 tzz  =  tau[5,:,:,:]
+nu_t  =  nu_t[0,:,:,:] 
 
 # compute horizontal averages
 uXMean = np.mean(u, axis=2)      # x-average
 uMean = np.mean(uXMean, axis=1)  # x- and y-averaged
+
+nu_tMean = np.mean(nu_t, axis=2) # x-average
+nu_tMean = np.mean(nu_tMean, axis=1) # x- and y-averaged
 
 txzMean = np.mean(txz, axis=2)      # x-averaging
 txzMean = np.mean(txzMean, axis=1)  # y-averaging
@@ -371,5 +383,8 @@ np.save(datdir+'tzz', tzz)
 np.save(datdir+'txz', txz)
 np.save(datdir+'txy', txy)
 np.save(datdir+'tyz', tyz)
+
+np.save(datdir+'nu_t', nu_t)
+np.save(datdir+'nu_tMean', nu_tMean)
 
 np.save(datdir+'snap', snap)

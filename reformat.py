@@ -11,7 +11,7 @@ from os import getcwd, system
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
-fourier    = 0;
+fourier    = 1;
 spectra_jb = 1;
 
 myDir = getcwd(); dirParts = myDir.split("/")
@@ -88,12 +88,13 @@ if avg:
         sp1dkx[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
 
     spvort  = np.zeros((8,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_spvort.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        sp1d_i = np.reshape(filecontents, (8,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        spvort[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
+    if fourier == 0:
+        for i in range(0, nproc):
+            fileName = './output/binary_spvort.dat.c' + str(i)
+            filecontents = readmyfile(fileName)
+            sp1d_i = np.reshape(filecontents, (8,nz2,ny,nx))
+            a = i*nz_;  b = (i+1)*nz_
+            spvort[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
 
     rs = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
@@ -112,12 +113,13 @@ if avg:
         tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
 
     nu_t = np.zeros((1,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_nu_t.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        nu_t_i = np.reshape(filecontents, (1,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        nu_t[:,a:b,:,:] = nu_t_i[:,0:nz_,:,:]
+    if fourier == 0:
+        for i in range(0, nproc):
+            fileName = './output/binary_nu_t.dat.c' + str(i)
+            filecontents = readmyfile(fileName)
+            nu_t_i = np.reshape(filecontents, (1,nz2,ny,nx))
+            a = i*nz_;  b = (i+1)*nz_
+            nu_t[:,a:b,:,:] = nu_t_i[:,0:nz_,:,:]
 
 snap  = np.zeros((3,nz,ny,nx))
 if snapshots:

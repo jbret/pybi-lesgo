@@ -34,11 +34,11 @@ RNL_branch = 1;    devel_branch = 0;
 vel_avg_plot    = 0;
 uXMean_plot     = 0;
 tau_plot        = 0;
-nu_t_plot       = 1;
+nu_t_plot       = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 0;  comp_only = 0;
+spvort_plot     = 1;  comp_only = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -477,6 +477,10 @@ if spvort_plot:
     kxEsy = kx * esy[:,0:nx/2]
     kxEsz = kx * esz[:,0:nx/2]
 
+    kxEsNorm = np.zeros(np.shape(kxEs))
+    for jz in range(1,nz):
+        kxEsNorm[jz,:] = kxEs[jz,:] / np.max(kxEs[jz,1:])
+
     if plot_wavelen:  # plot by wavelength
         xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';
         myX, Z = np.meshgrid(lamX[1:], z[1:])
@@ -489,8 +493,8 @@ if spvort_plot:
 
     if comp_only == 0:
         fig = plt.figure()
-        levels = np.linspace(np.min(kxEs), np.max(kxEs), numLevs);
         kxEsplot = kxEs[1:,1:]
+        levels = np.linspace(np.min(kxEsplot), np.max(kxEsplot), numLevs);
         cs = plt.contourf(myX, Z, kxEsplot, levels);
         plt.yscale('log'); plt.xscale('log')
         plt.xlabel(xlab);   plt.ylabel(ylab); 
@@ -500,6 +504,16 @@ if spvort_plot:
         #np.save('myX32',myX)
         #np.save('Z32',Z)
         #np.save('kxEsplot32',kxEsplot)
+
+        fig = plt.figure()
+        kxEsNormplot = kxEsNorm[1:,1:]
+        levels = np.linspace(np.min(kxEsNormplot), np.max(kxEsNormplot), numLevs);
+        cs = plt.contourf(myX, Z, kxEsNormplot, levels);
+        plt.yscale('log'); plt.xscale('log')
+        plt.xlabel(xlab);   plt.ylabel(ylab); 
+        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('vortsNorm_'+tag, 0); plt.close()
         
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);

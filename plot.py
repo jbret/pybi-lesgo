@@ -469,17 +469,29 @@ if spvort_plot:
     esy = np.mean(spvort_vortsy[:,:,:], axis=1)
     esz = np.mean(spvort_vortsz[:,:,:], axis=1)
 
-    kx = np.arange(0,nx/2)
+    kxMax = nx/2
+    #kxMax = 30
+    kx = np.arange(0,kxMax)
     lamX = Lx / kx
     
-    kxEs = kx * es[:,0:nx/2]
-    kxEsx = kx * esx[:,0:nx/2]
-    kxEsy = kx * esy[:,0:nx/2]
-    kxEsz = kx * esz[:,0:nx/2]
+    kxEs  = kx * es [:, 0:kxMax]
+    kxEsx = kx * esx[:, 0:kxMax]
+    kxEsy = kx * esy[:, 0:kxMax]
+    kxEsz = kx * esz[:, 0:kxMax]
+    #kxEsSum = np.zeros(np.shape(kxEs))
+    #kxEsSum = kxEsx + kxEsy + kxEsz
+    kxEsSum = esx[:,0:kxMax] + esy[:,0:kxMax] + esz[:,0:kxMax]
+    kxEsSum = kx * kxEsSum
 
+    A = 0.86;  B = 1.0;  # for re-scaling
     kxEsNorm = np.zeros(np.shape(kxEs))
+    #f = kxEs
+    f = kxEsSum
     for jz in range(1,nz):
-        kxEsNorm[jz,:] = kxEs[jz,:] / np.max(kxEs[jz,1:])
+        myMin = np.min( f[jz,1:] )
+        myMax = np.max( f[jz,1:] )
+        # rescale [myMin, myMax] into [A, B]
+        kxEsNorm[jz,:] = A + ( f[jz,:]-myMin )*(B-A)/(myMax-myMin)
 
     if plot_wavelen:  # plot by wavelength
         xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';

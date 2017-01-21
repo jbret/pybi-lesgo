@@ -31,17 +31,17 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 0;
+vel_avg_plot    = 1;
 uXMean_plot     = 0;
-tau_plot        = 0;
-nu_t_plot       = 0;
+tau_plot        = 1;
+nu_t_plot       = 1;
 spanSpec_plot   = 0;
-sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
 spvort_plot     = 1;  comp_only = 0;
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 0;
+rs_plot         = 1;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 0;

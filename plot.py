@@ -189,10 +189,21 @@ if tau_plot:
 
 if nu_t_plot:
     nu_tMean = np.load(datdir+'nu_tMean.npy')
-    fig = plt.figure()
+    fig = plt.figure(figsize=(14,7))
+    pf = 1.0/180.0    #450, 1050
+    plt.subplot(1,2,1)
     plt.plot(nu_tMean, z, '-o', color='g', label = r'$[ \nu_T ]$')
+    plt.plot(pf*z**(-1/3.0), z, '-', color='r', label = r'$c*z^{-1/3}$')
     # note below the 'r' needed before label (in order to render the \nu)
     plt.xlabel(r'$[ \nu_T ]$'); 
+    plt.ylabel('$'+vert+' / H $')
+    plt.legend()
+    plt.tight_layout()
+    plt.subplot(1,2,2)
+    plt.loglog(nu_tMean, z, '-o', color='g', label = r'$[ \nu_T ]$')
+    plt.loglog(pf*z**(-1/3.0), z, '-', color='r', label = r'$c*z^{-1/3}$')
+    # note below the 'r' needed before label (in order to render the \nu)
+    plt.xlabel(r'$[ \nu_T ]$');
     plt.ylabel('$'+vert+' / H $')
     plt.legend()
     plt.tight_layout()
@@ -483,10 +494,10 @@ if spvort_plot:
     kxEsSum = esx[:,0:kxMax] + esy[:,0:kxMax] + esz[:,0:kxMax]
     kxEsSum = kx * kxEsSum
 
-    A = 0.86;  B = 1.0;  # for re-scaling
+    A = 0.86;  B = 1.0;  # for re-scaling as in Jimenez review paper
     kxEsNorm = np.zeros(np.shape(kxEs))
-    #f = kxEs
-    f = kxEsSum
+    f = kxEs
+    #f = kxEsSum
     for jz in range(1,nz):
         myMin = np.min( f[jz,1:] )
         myMax = np.max( f[jz,1:] )
@@ -525,7 +536,7 @@ if spvort_plot:
         plt.xlabel(xlab);   plt.ylabel(ylab); 
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('vortsNorm_'+tag, 0); plt.close()
+        mySaveFig('vortsNormMagOnly_'+tag, 0); plt.close()
         
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);

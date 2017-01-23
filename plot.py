@@ -38,7 +38,7 @@ nu_t_plot       = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;  comp_only = 0;
+spvort_plot     = 1;  vort_components = 1;   integrate_spectra = 1; 
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -519,30 +519,31 @@ if spvort_plot:
         tag = 'KX_'
     numLevs = 100;
 
-    if comp_only == 0:
-        fig = plt.figure()
-        kxEsplot = kxEsSum[1:,1:]
-        levels = np.linspace(np.min(kxEsplot), np.max(kxEsplot), numLevs);
-        cs = plt.contourf(myX, Z, kxEsplot, levels);
-        plt.yscale('log'); plt.xscale('log')
-        plt.xlabel(xlab);   plt.ylabel(ylab); 
-        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-        cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('vorts_'+tag, 0); plt.close()
-        #np.save('myX32',myX)
-        #np.save('Z32',Z)
-        #np.save('kxEsplot32',kxEsplot)
+    fig = plt.figure()
+    kxEsplot = kxEsSum[1:,1:]
+    levels = np.linspace(np.min(kxEsplot), np.max(kxEsplot), numLevs);
+    cs = plt.contourf(myX, Z, kxEsplot, levels);
+    plt.yscale('log'); plt.xscale('log')
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
+    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+    mySaveFig('vorts_'+tag, 0); plt.close()
+    #np.save('myX32',myX)
+    #np.save('Z32',Z)
+    #np.save('kxEsplot32',kxEsplot)
 
-        fig = plt.figure()
-        kxEsNormplot = kxEsNorm[1:,1:]
-        levels = np.linspace(np.min(kxEsNormplot), np.max(kxEsNormplot), numLevs);
-        cs = plt.contourf(myX, Z, kxEsNormplot, levels);
-        plt.yscale('log'); plt.xscale('log')
-        plt.xlabel(xlab);   plt.ylabel(ylab); 
-        #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
-        cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('vortsNormMagOnly_'+tag, 0); plt.close()
-        
+    fig = plt.figure()
+    kxEsNormplot = kxEsNorm[1:,1:]
+    levels = np.linspace(np.min(kxEsNormplot), np.max(kxEsNormplot), numLevs);
+    cs = plt.contourf(myX, Z, kxEsNormplot, levels);
+    plt.yscale('log'); plt.xscale('log')
+    plt.xlabel(xlab);   plt.ylabel(ylab); 
+    #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')
+    cbar = plt.colorbar();    plt.tight_layout()
+    mySaveFig('vortsNormMagOnly_'+tag, 0); plt.close()
+
+
+    if vort_components == 1:
         fig = plt.figure()
         levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);
         kxEsxplot = kxEsx[1:,1:]
@@ -659,7 +660,7 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         mySaveFig('vortz_cross2_'+tag, 0); plt.close()
-    else:
+    if integrate_spectra:
         # Sum spectra and compare
         #compx_ = esz[:,0:nx/2]
         #compx_[:,1:nx/2] = compx_[:,1:nx/2] + compx_[:,1:nx/2]
@@ -681,7 +682,50 @@ if spvort_plot:
 	comp = np.sum(comp_[:,:,:], axis=2)
         cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('compx',0); plt.close()
+        mySaveFig('comp_',0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        ax = fig.add_subplot(1,2,1)
+        cs = plt.contourf( Y[:,:], Z[:,:], ex_cross[:,:] );
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        ax = fig.add_subplot(1,2,2)
+        comp_ = spvort_vortsx[:,:,0:]
+	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
+	comp = np.sum(comp_[:,:,:], axis=2)
+        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('compx_',0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        ax = fig.add_subplot(1,2,1)
+        cs = plt.contourf( Y[:,:], Z[:,:], ey_cross[:,:] );
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        ax = fig.add_subplot(1,2,2)
+        comp_ = spvort_vortsy[:,:,0:]
+	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
+	comp = np.sum(comp_[:,:,:], axis=2)
+        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('compy_',0); plt.close()
+
+        fig = plt.figure()
+        Y, Z = np.meshgrid(y, z)
+        ax = fig.add_subplot(1,2,1)
+        cs = plt.contourf( Y[:,:], Z[:,:], ez_cross[:,:] );
+        #plt.xlabel(xlab);   plt.ylabel(ylab); 
+        cbar = plt.colorbar();    plt.tight_layout()
+        ax = fig.add_subplot(1,2,2)
+        comp_ = spvort_vortsz[:,:,0:]
+	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
+	comp = np.sum(comp_[:,:,:], axis=2)
+        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cbar = plt.colorbar();    plt.tight_layout()
+        mySaveFig('compz_',0); plt.close()
+
 
 if sp2d_plot_vert:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')

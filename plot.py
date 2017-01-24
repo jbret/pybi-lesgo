@@ -489,7 +489,7 @@ if spvort_plot:
     esz = np.mean(spvort_vortsz[:,:,:], axis=1)
 
     kxMax = nx/2
-    #kxMax = 50
+    #kxMax = 15
     kx = np.arange(0,kxMax)
     lamX = Lx / kx
     
@@ -532,10 +532,10 @@ if spvort_plot:
     intTot = intx + inty + intz
     
     for jz in range(1,nz):
-        kxEsSum[jz,:] = kxEsSum[jz,:] # / intTot[jz]
-        kxEsx[jz,:] = kxEsx[jz,:]     # / intx[jz]
-        kxEsy[jz,:] = kxEsy[jz,:]     # / inty[jz]
-        kxEsz[jz,:] = kxEsz[jz,:]     # / intz[jz]
+        kxEsSum[jz,:] = kxEsSum[jz,:]  #/ intTot[jz]
+        kxEsx[jz,:] = kxEsx[jz,:]      #/ intx[jz]
+        kxEsy[jz,:] = kxEsy[jz,:]      #/ inty[jz]
+        kxEsz[jz,:] = kxEsz[jz,:]      #/ intz[jz]
 
     A = 0.86;  B = 1.0;  # for re-scaling as in Jimenez review paper
     kxEsNorm = np.zeros(np.shape(kxEs))
@@ -608,6 +608,12 @@ if spvort_plot:
         kxEszplot = kxEsz[1:,1:]
         levels = np.linspace(np.min(kxEszplot), np.max(kxEszplot), numLevs);
         cs = plt.contourf(myX, Z, kxEszplot, levels);
+        imax1,jmax1=np.unravel_index(np.argmax(kxEszplot[:,:]),np.shape(kxEszplot[:,:]))
+        print "peak: ", kxEszplot[imax1,jmax1], myX[imax1,jmax1], kxEszplot[imax1,jmax1]
+        arbNum = 50;
+        plt.plot(np.ones(arbNum)*myX[imax1,jmax1], np.linspace(z[1],z[-1],arbNum),'--',color='white')
+        plt.plot(np.linspace(1,kxMax-1, arbNum),np.ones(arbNum)*Z[imax1,jmax1],'--',color='white')
+        plt.text(1.1,0.8,r'$k_x='+str(myX[imax1,jmax1])+'$', fontsize=12, color='white')
         plt.yscale('log'); plt.xscale('log')
         plt.xlabel(xlab);   plt.ylabel(ylab); 
         #plt.title(r'$k_x E_{uu} / u_{\tau}^2 $')

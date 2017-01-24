@@ -38,7 +38,7 @@ nu_t_plot       = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;  vort_components = 1;   integrate_spectra = 1; 
+spvort_plot     = 1;  vort_components = 1;   vort_more = 0;  integrate_spectra = 0; 
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
@@ -453,14 +453,21 @@ if spvort_plot:
     # NOTE: Figures created through the pyplot interface (`matplotlib.pyplot.figure`) 
     # are retained until explicitly closed and may consume too much memory.
     # Could have problems if over 20 figures are opened.
-    spvort_vorts = np.load(datdir+'spvort_vorts.npy')
-    spvort_vortp = np.load(datdir+'spvort_vortp.npy')
+    # --------------------------------------------------------
+    # square of vorticity component recorded in physical space
     spvort_vortx = np.load(datdir+'spvort_vortx.npy')
     spvort_vorty = np.load(datdir+'spvort_vorty.npy')
     spvort_vortz = np.load(datdir+'spvort_vortz.npy')
+    # sum of squared vorticity components recorded in physical space
+    # i.e., the square of the vorticity magnitude
+    spvort_vortp = np.load(datdir+'spvort_vortp.npy')
+    # fourier component multiplied by its complex conj (kx space)
     spvort_vortsx = np.load(datdir+'spvort_vortsx.npy')
     spvort_vortsy = np.load(datdir+'spvort_vortsy.npy')
     spvort_vortsz = np.load(datdir+'spvort_vortsz.npy')
+    # fourier components (of vorticity magnitude) mult by its complex conj (kx space)
+    # --> square root was taken in calculating vorticity magnitude
+    spvort_vorts = np.load(datdir+'spvort_vorts.npy')
 
     # spanwise average
     ep = np.mean(spvort_vortp[:,:,:], axis=1)
@@ -475,13 +482,14 @@ if spvort_plot:
     ez = np.mean(spvort_vortz[:,:,:], axis=1)
     ez_cross = np.mean(spvort_vortz[:,:,:], axis=2)
     ez_cross2 = np.mean(spvort_vortz[:,:,:], axis=0)
+    
     es = np.mean(spvort_vorts[:,:,:], axis=1)
     esx = np.mean(spvort_vortsx[:,:,:], axis=1)
     esy = np.mean(spvort_vortsy[:,:,:], axis=1)
     esz = np.mean(spvort_vortsz[:,:,:], axis=1)
 
     kxMax = nx/2
-    #kxMax = 40
+    #kxMax = 50
     kx = np.arange(0,kxMax)
     lamX = Lx / kx
     
@@ -492,12 +500,42 @@ if spvort_plot:
     #kxEsSum = np.zeros(np.shape(kxEs))
     #kxEsSum = kxEsx + kxEsy + kxEsz
     kxEsSum = esx[:,0:kxMax] + esy[:,0:kxMax] + esz[:,0:kxMax]
-    sumHeight = np.sum(kxEsSum,1)
-    tot = np.sum(sumHeight)
-    #for jz in range(1,nz):
-    #    kxEsSum[jz,:] = kxEsSum[jz,:] / sumHeight[jz]
-    kxEsSum = kxEsSum / tot
+    #sumHeight = np.sum(kxEsSum,1)
+    #tot = np.sum(sumHeight)
+    #kxEsSum = kxEsSum / tot
     kxEsSum = kx * kxEsSum
+
+    kxCap = kxMax
+
+    # cannot exactly recover the physical space version because
+    # the square root was taken when calculating spvort_vorts
+    ints_ = spvort_vorts[:,:,0:kxCap]
+    ints_[:,:,1:] = ints_[:,:,1:] * 2.0
+    ints_ = np.sum(ints_[:,:,:], axis=2) # integrate over kx
+    ints  = np.mean(ints_[:,:], axis=1)  # average over span
+
+    intx_ = spvort_vortsx[:,:,0:kxCap]
+    intx_[:,:,1:] = intx_[:,:,1:] * 2.0
+    intx_ = np.sum(intx_[:,:,:], axis=2) # integrate over kx
+    intx = np.mean(intx_[:,:], axis=1)   # average over span
+
+    inty_ = spvort_vortsy[:,:,0:kxCap]
+    inty_[:,:,1:] = inty_[:,:,1:] * 2.0
+    inty_ = np.sum(inty_[:,:,:], axis=2) # integrate over kx
+    inty = np.mean(inty_[:,:], axis=1)   # average over span
+
+    intz_ = spvort_vortsz[:,:,0:kxCap]
+    intz_[:,:,1:] = intz_[:,:,1:] * 2.0
+    intz_ = np.sum(intz_[:,:,:], axis=2) # integrate over kx
+    intz = np.mean(intz_[:,:], axis=1)   # average over span
+
+    intTot = intx + inty + intz
+    
+    for jz in range(1,nz):
+        kxEsSum[jz,:] = kxEsSum[jz,:] # / intTot[jz]
+        kxEsx[jz,:] = kxEsx[jz,:]     # / intx[jz]
+        kxEsy[jz,:] = kxEsy[jz,:]     # / inty[jz]
+        kxEsz[jz,:] = kxEsz[jz,:]     # / intz[jz]
 
     A = 0.86;  B = 1.0;  # for re-scaling as in Jimenez review paper
     kxEsNorm = np.zeros(np.shape(kxEs))
@@ -512,11 +550,11 @@ if spvort_plot:
     if plot_wavelen:  # plot by wavelength
         xlab = '$ \lambda_x / \delta $';   ylab = '$'+vert+' / \delta $';
         myX, Z = np.meshgrid(lamX[1:], z[1:])
-        tag = 'LAMX_'
+        tag = 'LAMX_'+'kx'+str(kxMax)+'_'
     else:             # plot by wavenumber
         xlab = '$ \delta k_x$';   ylab = '$'+vert+' / \delta $';
         myX, Z = np.meshgrid(kx[1:], z[1:])
-        tag = 'KX_'
+        tag = 'KX_'+'kx'+str(kxMax)+'_'
     numLevs = 100;
 
     fig = plt.figure()
@@ -545,8 +583,8 @@ if spvort_plot:
 
     if vort_components == 1:
         fig = plt.figure()
-        levels = np.linspace(np.min(kxEsx), np.max(kxEsx), numLevs);
         kxEsxplot = kxEsx[1:,1:]
+        levels = np.linspace(np.min(kxEsxplot), np.max(kxEsxplot), numLevs);
         cs = plt.contourf(myX, Z, kxEsxplot, levels);
         plt.yscale('log'); plt.xscale('log')
         plt.xlabel(xlab);   plt.ylabel(ylab); 
@@ -556,8 +594,8 @@ if spvort_plot:
         #np.save('kxEsxplot32',kxEsxplot)
 
         fig = plt.figure()
-        levels = np.linspace(np.min(kxEsy), np.max(kxEsy), numLevs);
         kxEsyplot = kxEsy[1:,1:]
+        levels = np.linspace(np.min(kxEsyplot), np.max(kxEsyplot), numLevs);
         cs = plt.contourf(myX, Z, kxEsyplot, levels);
         plt.yscale('log'); plt.xscale('log')
         plt.xlabel(xlab);   plt.ylabel(ylab); 
@@ -567,8 +605,8 @@ if spvort_plot:
         #np.save('kxEsyplot32',kxEsyplot)        
 
         fig = plt.figure()
-        levels = np.linspace(np.min(kxEsz), np.max(kxEsz), numLevs);
         kxEszplot = kxEsz[1:,1:]
+        levels = np.linspace(np.min(kxEszplot), np.max(kxEszplot), numLevs);
         cs = plt.contourf(myX, Z, kxEszplot, levels);
         plt.yscale('log'); plt.xscale('log')
         plt.xlabel(xlab);   plt.ylabel(ylab); 
@@ -577,6 +615,7 @@ if spvort_plot:
         mySaveFig('vortsz_'+tag, 0); plt.close()
         #np.save('kxEszplot32',kxEszplot)
 
+    if vort_more == 1:
         fig = plt.figure()
         X, Z = np.meshgrid(x, z)
         cs = plt.contourf(X[:,:], Z[:,:], ep[:,:]);
@@ -677,12 +716,11 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         ax = fig.add_subplot(1,2,2)
-        comp_ = spvort_vorts[:,:,0:]
-	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
-	comp = np.sum(comp_[:,:,:], axis=2)
-        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cs = plt.contourf( Y[:,:], Z[:,:], ints_[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('comp_',0); plt.close()
+        mySaveFig('comp_',0);     plt.close()
+        ## ^^ won't match exactly because of square root
+        ## but the individual components (below) will match
 
         fig = plt.figure()
         Y, Z = np.meshgrid(y, z)
@@ -691,12 +729,10 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         ax = fig.add_subplot(1,2,2)
-        comp_ = spvort_vortsx[:,:,0:]
-	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
-	comp = np.sum(comp_[:,:,:], axis=2)
-        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cs = plt.contourf( Y[:,:], Z[:,:], intx_[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('compx_',0); plt.close()
+        mySaveFig('compx_',0);    plt.close()
+        print "difference: ", np.sum( ex_cross[:,:] - intx_[:,:] )
 
         fig = plt.figure()
         Y, Z = np.meshgrid(y, z)
@@ -705,12 +741,10 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         ax = fig.add_subplot(1,2,2)
-        comp_ = spvort_vortsy[:,:,0:]
-	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
-	comp = np.sum(comp_[:,:,:], axis=2)
-        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cs = plt.contourf( Y[:,:], Z[:,:], inty_[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('compy_',0); plt.close()
+        mySaveFig('compy_',0);    plt.close()
+        print "difference: ", np.sum( ey_cross[:,:] - inty_[:,:] )
 
         fig = plt.figure()
         Y, Z = np.meshgrid(y, z)
@@ -719,13 +753,10 @@ if spvort_plot:
         #plt.xlabel(xlab);   plt.ylabel(ylab); 
         cbar = plt.colorbar();    plt.tight_layout()
         ax = fig.add_subplot(1,2,2)
-        comp_ = spvort_vortsz[:,:,0:]
-	comp_[:,:,1:] = comp_[:,:,1:] + comp_[:,:,1:]
-	comp = np.sum(comp_[:,:,:], axis=2)
-        cs = plt.contourf( Y[:,:], Z[:,:], comp[:,:] );
+        cs = plt.contourf( Y[:,:], Z[:,:], intz_[:,:] );
         cbar = plt.colorbar();    plt.tight_layout()
-        mySaveFig('compz_',0); plt.close()
-
+        mySaveFig('compz_',0);    plt.close()
+        print "difference: ", np.sum( ez_cross[:,:] - intz_[:,:] )
 
 if sp2d_plot_vert:
     sp2d_uu = np.load(datdir+'sp2d_uu.npy')

@@ -12,7 +12,7 @@ RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
 fourier    = 0;
-spectra_jb = 1;
+spectra_jb = 0;
 
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
@@ -62,6 +62,22 @@ if avg:
         vel_i = np.reshape(filecontents, (6,nz2,ny,nx))
         a = i*nz_;  b = (i+1)*nz_
         vel2[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
+
+    dp  = np.zeros((3,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_dp.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        dp_i = np.reshape(filecontents, (3,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        dp[:,a:b,:,:] = dp_i[:,0:nz_,:,:]
+
+    f  = np.zeros((3,nz,ny,nx))
+    for i in range(0, nproc):
+        fileName = './output/binary_force_avg.dat.c' + str(i)
+        filecontents = readmyfile(fileName)
+        f_i = np.reshape(filecontents, (3,nz2,ny,nx))
+        a = i*nz_;  b = (i+1)*nz_
+        f[:,a:b,:,:] = f_i[:,0:nz_,:,:]
 
     sp2d  = np.zeros((6,nz,ny,nx))
     for i in range(0, nproc):
@@ -238,6 +254,12 @@ else:
 u    =  vel[0,:,:,:]
 v    =  vel[1,:,:,:]
 w    =  vel[2,:,:,:]
+dpdx = dp[0,:,:,:]
+dpdy = dp[1,:,:,:]
+dpdz = dp[2,:,:,:]
+fx = f[0,:,:,:]
+fy = f[1,:,:,:]
+fz = f[2,:,:,:]
 uu   = vel2[0,:,:,:] 
 vv   = vel2[1,:,:,:] 
 ww   = vel2[2,:,:,:]
@@ -286,13 +308,31 @@ nu_t  =  nu_t[0,:,:,:]
 
 # compute horizontal averages
 uXMean = np.mean(u, axis=2)      # x-average
+vXMean = np.mean(v, axis=2)      # x-average
+wXMean = np.mean(w, axis=2)      # x-average
 uMean = np.mean(uXMean, axis=1)  # x- and y-averaged
+vMean = np.mean(vXMean, axis=1)  # x- and y-averaged
+wMean = np.mean(wXMean, axis=1)  # x- and y-averaged
 
 nu_tMean = np.mean(nu_t, axis=2) # x-average
 nu_tMean = np.mean(nu_tMean, axis=1) # x- and y-averaged
 
 txzMean = np.mean(txz, axis=2)      # x-averaging
 txzMean = np.mean(txzMean, axis=1)  # y-averaging
+
+dpdxMean = np.mean(dpdx, axis=2)      # x-averaging
+dpdxMean = np.mean(dpdxMean, axis=1)  # y-averaging
+dpdyMean = np.mean(dpdy, axis=2)      # x-averaging
+dpdyMean = np.mean(dpdyMean, axis=1)  # y-averaging
+dpdzMean = np.mean(dpdz, axis=2)      # x-averaging
+dpdzMean = np.mean(dpdzMean, axis=1)  # y-averaging
+
+fxMean = np.mean(fx, axis=2)      # x-averaging
+fxMean = np.mean(fxMean, axis=1)  # y-averaging
+fyMean = np.mean(fy, axis=2)      # x-averaging
+fyMean = np.mean(fyMean, axis=1)  # y-averaging
+fzMean = np.mean(fz, axis=2)      # x-averaging
+fzMean = np.mean(fzMean, axis=1)  # y-averaging
 
 rs11Mean = np.mean(rs11, axis=2)
 rs11Mean = np.mean(rs11Mean, axis=1)
@@ -324,6 +364,8 @@ datdir = 'data-npy/'
 system('mkdir ' + datdir)
 np.save(datdir+'uXMean', uXMean)
 np.save(datdir+'uMean', uMean)
+np.save(datdir+'vMean', vMean)
+np.save(datdir+'wMean', wMean)
 np.save(datdir+'txzMean', txzMean)
 np.save(datdir+'rs11Mean', rs11Mean)
 np.save(datdir+'rs22Mean', rs22Mean)
@@ -337,6 +379,21 @@ np.save(datdir+'wwMean', wwMean)
 np.save(datdir+'uwMean', uwMean)
 np.save(datdir+'vwMean', vwMean)
 np.save(datdir+'uvMean', uvMean)
+
+np.save(datdir+'fx', fx)
+np.save(datdir+'fy', fy)
+np.save(datdir+'fz', fz)
+
+np.save(datdir+'fxMean', fxMean)
+np.save(datdir+'fyMean', fyMean)
+np.save(datdir+'fzMean', fzMean)
+np.save(datdir+'dpdxMean', dpdxMean)
+np.save(datdir+'dpdyMean', dpdyMean)
+np.save(datdir+'dpdzMean', dpdzMean)
+
+np.save(datdir+'dpdx', dpdx)
+np.save(datdir+'dpdy', dpdy)
+np.save(datdir+'dpdz', dpdz)
 
 np.save(datdir+'u', u)
 np.save(datdir+'v', v)

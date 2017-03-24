@@ -38,13 +38,15 @@ nu_t_plot       = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
-spvort_plot     = 1;  vort_components = 1;   vort_more = 0;  integrate_spectra = 0; 
+spvort_plot     = 0;  vort_components = 1;   vort_more = 0;  integrate_spectra = 0; 
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
 rs_plot         = 0;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 0;
+energy_bal      = 1;
+test_plot       = 0;
 #snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
 
 mkm = 0;   # reference DNS data from MKM 1999
@@ -1108,3 +1110,200 @@ if snap_plot_yz:
         # 'Raw RGBA bitmap': ['raw', 'rgba']
         # 'Portable Document Format': ['pdf']
         # 'Enhanced Metafile': ['emf']
+
+
+if energy_bal:
+    dz = Lz / nz
+    dx = Lx / nx
+    def ddz_w(f):
+        # f is on w-nodes, dfdz on uvp-nodes
+        dfdz = np.zeros((nx,ny,nz))
+        for jz in range(0,nz-1):
+            dfdz[jz,:,:] = (f[jz+1,:,:] - f[jz,:,:]) / dz
+        return dfdz
+
+    def ddx(f):
+        dfdx = np.zeros((nx,ny,nz))
+        kx = np.arange(0, nx/2+1)*(1j)
+        for j in range(0, ny):
+            for k in range(0, nz):
+                temp = np.fft.rfft( f[k,j,:] )
+                temp = temp * kx
+                dfdx[k,j,:] = np.fft.irfft( temp )
+        return dfdx
+
+    def ddy(f):
+        dfdy = np.zeros((nx,ny,nz))
+        ky = np.arange(0, ny/2+1)*(1j)
+        for i in range(0, nx):
+            for k in range(0, nz):
+                temp = np.fft.rfft( f[k,:,i] )
+                temp = temp * ky
+                dfdy[k,:,i] = np.fft.irfft( temp )
+        return dfdy
+ 
+    def interp2uv(f):
+        # f is on w-nodes, fuv on uvp-nodes
+        fuv = np.zeros((nx,ny,nz))
+        for jz in range(0,nz-1):
+            fuv[jz,:,:] = (f[jz+1,:,:] + f[jz,:,:]) / 2.0
+        return fuv
+
+    def interp2w(f):
+        # f is on uv-nodes, fw on w-nodes
+        fw = np.zeros((nx,ny,nz))
+        for jz in range(0,nz-1):
+            fw[jz+1,:,:] = (f[jz,:,:] + f[jz+1,:,:]) / 2.0
+        return fw
+
+    dz = Lz / nz
+    z_w  = np.linspace(0, Lz, nz, endpoint=False)  # w-grid (no point at z = 1.0)
+    z_uv = np.linspace(dz/2, Lz-dz/2, nz) # uv-grid ( last point at Lz-dz/2 )
+
+    u = np.load(datdir+'u.npy')
+    v = np.load(datdir+'v.npy')
+    w = np.load(datdir+'w.npy')
+    txx = np.load(datdir+'txx.npy')
+    tyy = np.load(datdir+'tyy.npy')
+    tzz = np.load(datdir+'tzz.npy')
+    txz = np.load(datdir+'txz.npy')
+    txy = np.load(datdir+'txy.npy')
+    tyz = np.load(datdir+'tyz.npy')
+    rs11 = np.load(datdir+'rs11.npy'); #rs11 = -rs11
+    rs22 = np.load(datdir+'rs22.npy'); #rs22 = -rs22
+    rs33 = np.load(datdir+'rs33.npy'); #rs33 = -rs33
+    rs12 = np.load(datdir+'rs12.npy'); #rs12 = -rs12
+    rs13 = np.load(datdir+'rs13.npy'); #rs13 = -rs13
+    rs23 = np.load(datdir+'rs23.npy'); #rs23 = -rs23
+    rs21 = rs12
+    rs31 = rs13
+    rs32 = rs23
+
+    dudx = ddx(u)
+    dvdx = ddx(v)
+    dwdx = ddx(w)
+    dudy = ddy(u)
+    dvdy = ddy(v)
+    dwdy = ddy(w)
+    dudz = ddz_w(u); dudz = interp2w(dudz)
+    dvdz = ddz_w(v); dvdz = interp2w(dvdz)
+    dwdz = ddz_w(w); dwdz = interp2w(dwdz)
+
+    # advection
+    E = 0.5 * (u**2 + v**2 + w**2)
+    a1 = u*ddx(E)
+    b1 = v*ddy(E)
+    c1 = ddz_w(E); c1 = w*interp2w(c1)
+    term1 = a1 + b1 + c1
+    term1 = -1*np.mean(np.mean(term1,axis=2),axis=1)
+
+    # pressure
+    dpdx = np.load(datdir+'dpdx.npy')
+    dpdx = dpdx - 1.0
+    dpdx = interp2w(dpdx)
+    dpdy = np.load(datdir+'dpdy.npy')
+    dpdy = interp2w(dpdy)
+    dpdz = np.load(datdir+'dpdz.npy')
+    a2 = u*dpdx
+    b2 = v*dpdy
+    c2 = w*dpdz
+    term2 = a2 + b2 + c2
+    term2 = -np.mean(np.mean(term2,axis=2), axis=1)
+
+    fx = np.load(datdir+'fx.npy')
+    fx = interp2w(fx)
+    fy = np.load(datdir+'fy.npy')
+    fy = interp2w(fy)
+    fz = np.load(datdir+'fz.npy')
+
+    a5 = u*fx
+    b5 = v*fy
+    c5 = w*fz
+    term5 = a5 + b5 + c5
+    term5 = np.mean(np.mean(term5,axis=2),axis=1)
+
+    a6 = u*rs11 + v*rs21 + w*rs31
+    b6 = u*rs12 + v*rs22 + w*rs32
+    c6 = u*rs13 + v*rs23 + w*rs33
+    a6 = ddx(a6)
+    b6 = ddy(b6)
+    c6 = ddz_w(c6); c6 = interp2w(c6)
+    term6a = a6 + b6 + c6
+    a6b = u*txx + v*txy + w*txz
+    b6b = u*txy + v*tyy + w*tyz
+    c6b = u*txz + v*tyz + w*tzz
+    a6b = ddx(a6b)
+    b6b = ddy(b6b)
+    c6b = ddz_w(c6b); c6b = interp2w(c6b)
+    term6b = a6b + b6b + c6b 
+    term6 = -1*np.mean(np.mean(term6a+term6b,axis=2),axis=1)
+
+    a7 = (rs11+txx) * dudx
+    b7 = (rs22+tyy) * dvdy
+    c7 = (rs33+tzz) * dwdz
+    d7 = (rs12+txy) * dudy
+    e7 = (rs13+txz) * dudz
+    f7 = (rs23+tyz) * dvdz
+    g7 = (rs21+txy) * dvdx
+    h7 = (rs31+txz) * dwdx
+    i7 = (rs32+tyz) * dwdy
+    term7 = a7 + b7 + c7 + d7 + e7 + f7 + g7 + h7 + i7
+    term7 = np.mean(np.mean(term7,axis=2),axis=1)
+
+    my_lw = 3    # line width
+    my_ms = 5    # marker size
+    my_mew = 2   # marker edge width 
+    my_fs = 'none'  # fillstyle
+
+    fig = plt.figure()
+    plt.plot(term1, z_w, '+b', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ -\rho \bar{u} \cdot \nabla E $')
+    plt.plot(term2, z_w, '^c', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ -\nabla \cdot (\bar{u}p) $')
+    #plt.plot(term3, z_w, 'om', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ \rho \nu_T \nabla^2 E $')
+    #plt.plot(term4, z_w, 'dg', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ -\rho \nu_T \nabla\bar{u}:\nabla\bar{u} $')
+    plt.plot(term5, z_w, '^y', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ \bar{u} \cdot F $')
+    plt.plot(term6, z_w, 'og', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ \nabla \cdot (\bar{u} \cdot R)+\nabla \cdot (\bar{u}\bar{\tau}) $')
+    plt.plot(term7, z_w, 'sr', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'$ -R : \nabla \bar{u} + \bar{\tau} \nabla \bar{u} $')
+
+    term_tot = term1 + term2 + term5 + term6 + term7 #+ term3 + term4
+    plt.plot(term_tot, z_w, 'ok', ms=my_ms, mew=my_mew, fillstyle=my_fs, label=r'sum')
+
+    xa = -120;   xb = -xa;
+    ya = 0;     yb = 1
+    line = np.linspace(xa,xb,1000)
+    line2 = np.linspace(ya,yb,1000)
+    plt.plot(line, np.ones(len(line))*0.15, '--', color='k')
+    plt.plot(line, np.ones(len(line))*0.05, '--', color='k')
+    plt.plot(np.zeros(len(line2)), line2, '-k', color='k')   
+    plt.title('Kinetic energy balance')
+    plt.text(xa+10, yb-.1, r'$E = \bar{u} \cdot \bar{u} / 2$',fontsize=24)
+    plt.text(xa+10, yb-.2, r'$R = -\rho \overline{u u}$',fontsize=24)
+    plt.ylabel(r'$ y / H $')
+    plt.xlim((xa,xb)) 
+    plt.ylim((ya,yb)) 
+    plt.legend(fontsize=18)
+    mySaveFig('energy_bal_', 0)
+
+
+if test_plot:
+
+    def ddx(f, n):
+        dfdx = np.fft.rfft(f)
+        kx = np.arange(0, n/2+1)*(1j)
+        dfdx = dfdx * kx
+        dfdx = np.fft.irfft(dfdx)
+        return dfdx
+
+    x  = np.linspace(0, Lx, nx, endpoint=False)
+    myk = 3.0
+    fin = 1.2 + np.sin(myk*x)
+    fp1 = myk*np.cos(myk*x)
+    fp2 = ddx(fin, nx)
+
+    fig = plt.figure()
+    plt.plot(x, fin, 'ok')
+    plt.plot(x, fp1, 'sr')
+    plt.plot(x, fp2, 'or')
+    mySaveFig('test_', 0)
+
+
+

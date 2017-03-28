@@ -16,6 +16,7 @@ runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
 filename1 = './output/tau_wall.dat'
 filename2 = './output/ke_kx.dat'
+filename3 = './output/ke_ky.dat'
 
 plt.close("all")
 if isfile(filename1):
@@ -87,4 +88,30 @@ if isfile(filename2):
 
 else:
     print ">>>> File "+filename2+" is not present!"
+
+if isfile(filename3):
+    lines = np.loadtxt(filename3, skiprows=1)
+    t = lines[:,0]
+    num_ky = np.size(lines,1)
+    max_ky = 70
+
+    if num_ky < max_ky:
+	ky_plot = num_ky
+    else:
+  	ky_plot = max_ky
+
+    fig = plt.figure(figsize=(12,6))
+    for i in range(1, ky_plot-1):
+        plt.semilogy(t, lines[:,i], label=r'$k_y =$'+str(i-1))
+        plt.rc('lines', linewidth=2)
+        plt.rc('axes', prop_cycle=(cycler('color', ['r', 'g', 'b', 'y']) +
+                                   cycler('marker', ['o', 's','o','s'])))
+    
+    plt.xlabel('timestep'); plt.ylabel('ky energy')
+    lgd = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, ncol=4, borderaxespad=0.)
+    ymin, ymax = plt.ylim()
+    plt.ylim((10**1, ymax))
+    plt.savefig('hist_ky_energy' + runName + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+else:
+    print ">>>> File "+filename3+" is not present!"
 

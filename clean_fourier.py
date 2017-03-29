@@ -5,8 +5,12 @@ Author: Joel Bretheim
 import numpy as np
 
 def clean_fourier(u):
-    myShape = np.shape(u)
-    print 'shape: ',  myShape
+    myShape = np.shape(u); print 'shape: ', myShape
+    num = myShape[0]; print 'num: ', num
+    nz  = myShape[1]; print 'nz: ', nz
+    ny  = myShape[2]; print 'ny: ', ny
+    nx  = myShape[3]; print 'nx: ', nx
+    
     uc = np.zeros(myShape, dtype=complex) # (kx,y,z)
     
     # re-arrange real-valued arrays into complex-valued arrays
@@ -18,10 +22,12 @@ def clean_fourier(u):
   
     # go from kx space to x space
     uci = np.zeros(myShape, dtype=complex)
-    for v in range(0,3):
+    for v in range(0,3):  # should indeed be 3 and not num
         for k in range(0,nz):
             for j in range(0,ny):
                 uci[v,k,j,:] = np.fft.ifft(uc[v,k,j,:]) * nx
+                if num == 6:
+                    uci[v+3,k,j,:] = np.fft.ifft(uc[v+3,k,j,:]) * nx
 
     u_clean = np.real(uci)
     return u_clean

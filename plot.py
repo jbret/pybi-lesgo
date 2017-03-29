@@ -31,21 +31,21 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 0;
+vel_avg_plot    = 1;
 uXMean_plot     = 0;
-tau_plot        = 0;
+tau_plot        = 1;
 nu_t_plot       = 0;
 spanSpec_plot   = 0;
-sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
+sp1dky_plot     = 1;  plot_wavelen = 0;  # by wavelength or wavenumber
 sp1dkx_plot     = 0;
 spvort_plot     = 0;  vort_components = 1;   vort_more = 0;  integrate_spectra = 0; 
 sp2d_plot_vert  = 0;  # WARNING: must test plot labels in LES case for sp2d plots (both vert and horiz)
 sp2d_plot_horiz = 0;  localMax = 1  # if 0 then uses global max
-rs_plot         = 0;
+rs_plot         = 1;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 0;
-energy_bal      = 1;
+energy_bal      = 0;
 test_plot       = 0;
 #snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
 
@@ -118,7 +118,7 @@ if vel_avg_plot:
         c1_uMean = np.load(c1dir+datdir+'uMean.npy')
         c1_z = z
         plt.semilogx(c1_z, c1_uMean, 'or', label=r'$ k_x = 3 $')
-    plt.semilogx(z, 1/0.4*np.log(z/.0001), '-k', 
+    plt.semilogx(z, 1/0.4*np.log(z/.0000125), '-k', 
                  label=r'$1/\kappa \ \mathrm{log}('+vert+'/'+vert+'_{0})$')
     #plt.semilogx(z/(1./180), 1/0.41*np.log(z/(1./180))+5.0, '-k', label=r'$1/\kappa \ \mathrm{log}(z^{+})+B$')
     plt.xlabel('$'+vert+' / H $');

@@ -5,13 +5,16 @@ Author: Joel Bretheim
 import numpy as np
 import re
 from subprocess import check_output
-from read_lesgo_bin import readmyfile
+#from read_lesgo_bin import readmyfile
 from os import getcwd, system
+from assemble_field import assemble_field
+from clean_fourier import clean_fourier
+from clean_fourier2 import clean_fourier2
 
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
-fourier    = 0;
+fourier    = 1;
 spectra_jb = 0;
 
 myDir = getcwd(); dirParts = myDir.split("/")
@@ -28,12 +31,12 @@ dummy = check_output(["grep", 'nx, ny', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
 nx = dummyStr[0]; ny = dummyStr[1]; nz2 = dummyStr[2]; nz = dummyStr[3];
 nz = nz - 1;
-nz_ = nz2 - 1;
+#nz_ = nz2 - 1;
 print "nx  =", nx
 print "ny  =", ny
 print "nz  =", nz
 print "nz2 =", nz2
-print "nz_ =", nz_
+#print "nz_ =", nz_
 
 dummy = check_output(["grep", 'nproc', lesgo_param_loc])
 dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
@@ -45,171 +48,30 @@ print "nx*ny*nz2*8*3 =", nx*ny*nz2*8*3
 print "nx*ny*nz2*8*6 =", nx*ny*nz2*8*6
 
 if avg:
-    # neglect top point in each proc except last proc
-    # remember, 0:8 does not grab the point at index 8, just indices 0-7
-    vel  = np.zeros((3,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_vel_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        vel_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        vel[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
-
-    vel2  = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_vel2_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        vel_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        vel2[:,a:b,:,:] = vel_i[:,0:nz_,:,:]
-
-    dp  = np.zeros((3,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_dp.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        dp_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        dp[:,a:b,:,:] = dp_i[:,0:nz_,:,:]
-
-    f  = np.zeros((3,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_force_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        f_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        f[:,a:b,:,:] = f_i[:,0:nz_,:,:]
-
-    sp2d  = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_sp2d.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        sp_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        sp2d[:,a:b,:,:] = sp_i[:,0:nz_,:,:]
-
-    sp1dky  = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_sp1dky.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        sp1dky[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
-
-    sp1dkx  = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_sp1dkx.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        sp1d_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        sp1dkx[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
-
-    spvort  = np.zeros((8,nz,ny,nx))
-    if fourier == 0:
-        for i in range(0, nproc):
-            fileName = './output/binary_spvort.dat.c' + str(i)
-            filecontents = readmyfile(fileName)
-            sp1d_i = np.reshape(filecontents, (8,nz2,ny,nx))
-            a = i*nz_;  b = (i+1)*nz_
-            spvort[:,a:b,:,:] = sp1d_i[:,0:nz_,:,:]
-
-    rs = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_rs.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        rs_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        rs[:,a:b,:,:] = rs_i[:,0:nz_,:,:]
-
-    tau = np.zeros((6,nz,ny,nx))
-    for i in range(0, nproc):
-        fileName = './output/binary_tau_avg.dat.c' + str(i)
-        filecontents = readmyfile(fileName)
-        tau_i = np.reshape(filecontents, (6,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        tau[:,a:b,:,:] = tau_i[:,0:nz_,:,:]
-
+    vel    = assemble_field('./output/binary_vel_avg.dat.c',nproc,3,nz2,nz,ny,nx)
+    vel2   = assemble_field('./output/binary_vel2_avg.dat.c',nproc,6,nz2,nz,ny,nx)
+    rs     = assemble_field('./output/binary_rs.dat.c',nproc,6,nz2,nz,ny,nx)
+    tau    = assemble_field('./output/binary_tau_avg.dat.c',nproc,6,nz2,nz,ny,nx)
+    #dp     = assemble_field('./output/binary_dp.dat.c',nproc,3,nz2,nz,ny,nx)
+    f      = assemble_field('./output/binary_force_avg.dat.c',nproc,3,nz2,nz,ny,nx)
+    sp2d   = assemble_field('./output/binary_sp2d.dat.c',nproc,6,nz2,nz,ny,nx)
+    sp1dky = assemble_field('./output/binary_sp1dky.dat.c',nproc,6,nz2,nz,ny,nx)
+    sp1dkx = assemble_field('./output/binary_sp1dkx.dat.c',nproc,6,nz2,nz,ny,nx)
+    spvort = np.zeros((8,nz,ny,nx))
     nu_t = np.zeros((1,nz,ny,nx))
     if fourier == 0:
-        for i in range(0, nproc):
-            fileName = './output/binary_nu_t.dat.c' + str(i)
-            filecontents = readmyfile(fileName)
-            nu_t_i = np.reshape(filecontents, (1,nz2,ny,nx))
-            a = i*nz_;  b = (i+1)*nz_
-            nu_t[:,a:b,:,:] = nu_t_i[:,0:nz_,:,:]
-
-snap  = np.zeros((3,nz,ny,nx))
-if snapshots:
-    for i in range(0, nproc):
-        fileName = './output/binary_vel.'+str(thisSnap)+'.dat.c'+str(i)
-        filecontents = readmyfile(fileName)
-        snap_i = np.reshape(filecontents, (3,nz2,ny,nx))
-        a = i*nz_;  b = (i+1)*nz_
-        snap[:,a:b,:,:] = snap_i[:,0:nz_,:,:]
-
+        spvort = assemble_field('./output/binary_spvort.dat.c',nproc,8,nz2,nz,ny,nx)
+        nu_t   = assemble_field('./output/binary_nu_t.dat.c',nproc,1,nz2,nz,ny,nx)
+    snap = np.zeros((3,nz,ny,nx))
+    if snapshots:
+        snap   = assemble_field('./output/binary_vel.'+str(thisSnap)+'.dat.c',
+                 nproc,3,nz2,nz,ny,nx)
 if fourier:
-    # complex-valued arrays corresponding to the real-valued arrays
-    # stored in (kx,ky) space
-    tauc    = np.zeros((6,nz,ny,nx), dtype=complex) # (kx,ky,z)
-    snapc   = np.zeros((3,nz,ny,nx), dtype=complex) # (kx,ky,z)
-    # stored in (kx) space
-    # (w-grid velocities, the uv grid velocity is apparently kx,ky space)
-    velc    = np.zeros((3,nz,ny,nx), dtype=complex) # (kx, y,z) 
-    vel2c   = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
-    rsc     = np.zeros((6,nz,ny,nx), dtype=complex) # (kx, y,z)
-
-    # re-arrange real-valued arrays into complex-valued arrays
-    for i in range(0,nx/2):
-        b = 2*i+1;   a = b-1;   e = nx-i;  print 'i,a,b: ', i,a,b,e
-        tauc[:,:,:,i]  =  tau[:,:,:,a] + 1j *  tau[:,:,:,b]        
-        snapc[:,:,:,i] = snap[:,:,:,a] + 1j * snap[:,:,:,b]
-        velc[:,:,:,i]  =  vel[:,:,:,a] + 1j *  vel[:,:,:,b]
-        vel2c[:,:,:,i] = vel2[:,:,:,a] + 1j * vel2[:,:,:,b]
-        rsc[:,:,:,i]   =   rs[:,:,:,a] + 1j *   rs[:,:,:,b]
-        if i > 0:
-            velc[:,:,:,e] = np.conj(velc[:,:,:,i])
-            vel2c[:,:,:,e] = np.conj(vel2c[:,:,:,i])
-            rsc[:,:,:,e] = np.conj(rsc[:,:,:,i])
-
-    # go from kx,ky space to kx space
-    for v in range(0,3):
-        for i in range(0,nx/2):
-            for k in range(0,nz):
-                snapc[v,k,:,i] = np.fft.ifft(snapc[v,k,:,i]) * ny
-                tauc[v,k,:,i] = np.fft.ifft(tauc[v,k,:,i]) * ny
-                tauc[v+3,k,:,i] = np.fft.ifft(tauc[v+3,k,:,i]) * ny
-
-    for i in range(1,nx/2):
-        e = nx-i;  #print 'i,e : ', i,e
-        snapc[:,:,:,e] = np.conj(snapc[:,:,:,i])
-        tauc[:,:,:,e] = np.conj(tauc[:,:,:,i])
-
-    # go from kx space to x space
-    tauci = np.zeros((6,nz,ny,nx),dtype=complex)
-    snapci = np.zeros((3,nz,ny,nx),dtype=complex)
-    velci = np.zeros((3,nz,ny,nx),dtype=complex)
-    vel2ci = np.zeros((6,nz,ny,nx),dtype=complex)
-    rsci = np.zeros((6,nz,ny,nx),dtype=complex)
-    for v in range(0,3):
-        for k in range(0,nz):
-            for j in range(0,ny):
-                tauci[v,k,j,:] = np.fft.ifft(tauc[v,k,j,:]) * nx
-                tauci[v+3,k,j,:] = np.fft.ifft(tauc[v+3,k,j,:]) * nx
-                snapci[v,k,j,:] = np.fft.ifft(snapc[v,k,j,:]) * nx
-                velci[v,k,j,:] = np.fft.ifft(velc[v,k,j,:]) * nx
-                vel2ci[v,k,j,:] = np.fft.ifft(vel2c[v,k,j,:]) * nx
-                vel2ci[v+3,k,j,:] = np.fft.ifft(vel2c[v+3,k,j,:]) * nx
-                rsci[v,k,j,:] = np.fft.ifft(rsc[v,k,j,:]) * nx
-                rsci[v+3,k,j,:] = np.fft.ifft(rsc[v+3,k,j,:]) * nx
-
-    # clean up and rename
-    tau = np.real(tauci)
-    snap = np.real(snapci)
-    vel = np.real(velci)
-    vel2 = np.real(vel2ci)
-    rs = np.real(rsci)
-
-else:
-    print ">>>> Not in Fourier mode"
+    vel = clean_fourier(vel)
+    vel2 = clean_fourier(vel2)
+    rs = clean_fourier(rs)
+    tau = clean_fourier2(tau)
+    snap = clean_fourier2(snap)  # not tested yet
 
 if spectra_jb:
     # complex-valued arrays corresponding to the real-valued arrays
@@ -254,9 +116,9 @@ else:
 u    =  vel[0,:,:,:]
 v    =  vel[1,:,:,:]
 w    =  vel[2,:,:,:]
-dpdx = dp[0,:,:,:]
-dpdy = dp[1,:,:,:]
-dpdz = dp[2,:,:,:]
+#dpdx = dp[0,:,:,:]
+#dpdy = dp[1,:,:,:]
+#dpdz = dp[2,:,:,:]
 fx = f[0,:,:,:]
 fy = f[1,:,:,:]
 fz = f[2,:,:,:]
@@ -320,12 +182,12 @@ nu_tMean = np.mean(nu_tMean, axis=1) # x- and y-averaged
 txzMean = np.mean(txz, axis=2)      # x-averaging
 txzMean = np.mean(txzMean, axis=1)  # y-averaging
 
-dpdxMean = np.mean(dpdx, axis=2)      # x-averaging
-dpdxMean = np.mean(dpdxMean, axis=1)  # y-averaging
-dpdyMean = np.mean(dpdy, axis=2)      # x-averaging
-dpdyMean = np.mean(dpdyMean, axis=1)  # y-averaging
-dpdzMean = np.mean(dpdz, axis=2)      # x-averaging
-dpdzMean = np.mean(dpdzMean, axis=1)  # y-averaging
+#dpdxMean = np.mean(dpdx, axis=2)      # x-averaging
+#dpdxMean = np.mean(dpdxMean, axis=1)  # y-averaging
+#dpdyMean = np.mean(dpdy, axis=2)      # x-averaging
+#dpdyMean = np.mean(dpdyMean, axis=1)  # y-averaging
+#dpdzMean = np.mean(dpdz, axis=2)      # x-averaging
+#dpdzMean = np.mean(dpdzMean, axis=1)  # y-averaging
 
 fxMean = np.mean(fx, axis=2)      # x-averaging
 fxMean = np.mean(fxMean, axis=1)  # y-averaging
@@ -387,13 +249,13 @@ np.save(datdir+'fz', fz)
 np.save(datdir+'fxMean', fxMean)
 np.save(datdir+'fyMean', fyMean)
 np.save(datdir+'fzMean', fzMean)
-np.save(datdir+'dpdxMean', dpdxMean)
-np.save(datdir+'dpdyMean', dpdyMean)
-np.save(datdir+'dpdzMean', dpdzMean)
+#np.save(datdir+'dpdxMean', dpdxMean)
+#np.save(datdir+'dpdyMean', dpdyMean)
+#np.save(datdir+'dpdzMean', dpdzMean)
 
-np.save(datdir+'dpdx', dpdx)
-np.save(datdir+'dpdy', dpdy)
-np.save(datdir+'dpdz', dpdz)
+#np.save(datdir+'dpdx', dpdx)
+#np.save(datdir+'dpdy', dpdy)
+#np.save(datdir+'dpdz', dpdz)
 
 np.save(datdir+'u', u)
 np.save(datdir+'v', v)

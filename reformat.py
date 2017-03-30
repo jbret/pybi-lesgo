@@ -66,10 +66,10 @@ if avg:
         snap   = assemble_field('./output/binary_vel.'+str(thisSnap)+'.dat.c',
                  nproc,3,nz2,nz,ny,nx)
 if fourier:
-    vel  = unfold(vel,  1)
+    vel  = unfold(vel,  1)   # kx --> x
     vel2 = unfold(vel2, 1)
     rs   = unfold(rs,   1)
-    tau  = unfold(tau,  2)
+    tau  = unfold(tau,  2)  # kx, ky --> x
     snap = unfold(snap, 2)  # not tested yet
 
 if spectra_jb:

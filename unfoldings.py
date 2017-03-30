@@ -10,9 +10,9 @@ def getParams(u):
     print 'params (shape, num, nz, ny, nx): ', myShape, num, nz, ny, nx
     return myShape, num, nz, ny, nx
 
+# go from kx space to x space
 def kx2x(uc):
     myShape, num, nz, ny, nx = getParams(uc)
-    # go from kx space to x space
     uci = np.zeros(myShape, dtype=complex)
     for v in range(0,3):  # should indeed be 3 and not num
         for k in range(0,nz):
@@ -23,9 +23,9 @@ def kx2x(uc):
 
     return np.real(uci)
 
+# go from kx,ky space to kx space
 def kxky2kx(uc):
     myShape, num, nz, ny, nx = getParams(uc)
-    # go from kx,ky space to kx space
     for v in range(0,3): # should indeed be 3 and not num
         for i in range(0,nx/2):
             for k in range(0,nz):
@@ -38,9 +38,12 @@ def kxky2kx(uc):
         uc[:,:,:,e] = np.conj(uc[:,:,:,i])
     return uc
 
+# transform from spectral space to x space
 def unfold(u, myType):
+    # myType == 1:  kx    -> x
+    # myType == 2:  kx,ky -> x
     myShape, num, nz, ny, nx = getParams(u)
-    uc = np.zeros(myShape, dtype=complex) # (kx,y,z)
+    uc = np.zeros(myShape, dtype=complex)
     
     # re-arrange real-valued arrays into complex-valued arrays
     for i in range(0,nx/2):
@@ -50,7 +53,6 @@ def unfold(u, myType):
             uc[:,:,:,e] = np.conj( uc[:,:,:,i] )
 
     if myType == 2:
-        # go from kx,ky space to kx space
         uc = kxky2kx(uc)
     
     out = kx2x(uc)

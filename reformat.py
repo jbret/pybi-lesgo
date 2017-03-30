@@ -8,8 +8,7 @@ from subprocess import check_output
 #from read_lesgo_bin import readmyfile
 from os import getcwd, system
 from assemble_field import assemble_field
-from clean_fourier import clean_fourier
-from clean_fourier2 import clean_fourier2
+from unfoldings import unfold
 
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
@@ -67,11 +66,11 @@ if avg:
         snap   = assemble_field('./output/binary_vel.'+str(thisSnap)+'.dat.c',
                  nproc,3,nz2,nz,ny,nx)
 if fourier:
-    vel = clean_fourier(vel)
-    vel2 = clean_fourier(vel2)
-    rs = clean_fourier(rs)
-    tau = clean_fourier2(tau)
-    snap = clean_fourier2(snap)  # not tested yet
+    vel  = unfold(vel,  1)
+    vel2 = unfold(vel2, 1)
+    rs   = unfold(rs,   1)
+    tau  = unfold(tau,  2)
+    snap = unfold(snap, 2)  # not tested yet
 
 if spectra_jb:
     # complex-valued arrays corresponding to the real-valued arrays

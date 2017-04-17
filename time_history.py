@@ -14,26 +14,71 @@ from os.path import isfile
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
-filename1 = './output/tau_wall.dat'
+filename1  = './output/tau_wall.dat'
+filename1a = './output/tau_wall_bot.dat'
+filename1b = './output/tau_wall_top.dat'
 filename2 = './output/ke_kx.dat'
 filename3 = './output/ke_ky.dat'
+filename4 = './output/check_ke.dat'
+
+def get_wall_stress(myFileName):
+    lines = np.loadtxt(myFileName, skiprows=1, usecols=(0,1,7))
+    ts = lines[:,0]        # timesteps
+    t = lines[:,1]         # nondimensional time
+    tau_wall = lines[:,2]  # nondimensional wallstress
+    return ts, t, tau_wall
 
 plt.close("all")
 if isfile(filename1):
-    lines = np.loadtxt(filename1, skiprows=1, usecols=(0,6,7))
-    t = lines[:,0]
-    one = lines[:,1]
-    tau_wall = lines[:,2]
+    ts, t, tau_wall = get_wall_stress(filename1)
+if isfile(filename1a):
+    ts, t, tau_wall = get_wall_stress(filename1a)
 
-    fig = plt.figure(figsize=(12,3))
-    plt.plot(t, one, 'k')
+if isfile(filename1) or isfile(filename1a):
+    n = np.size(t)
+    meanStress = np.mean(tau_wall[np.floor(n/2):n-1]) 
+    baseline = np.ones(n) * meanStress
+    fig = plt.figure(figsize=(10,7))
+    ymin = np.min(tau_wall) - 0.1*np.min(tau_wall)
+    ymax = np.max(tau_wall) + 0.1*np.max(tau_wall)
+    plt.subplot(2,1,1)
+    plt.plot(t, baseline, 'k')
     plt.plot(t, tau_wall, 'or')
+    plt.xlabel('nondimensional time'); plt.ylabel('wall shear stress')
+    plt.xlim((0, t[-1]))
+    plt.ylim((ymin, ymax))
+    plt.text(0.0, ymax-0.05*ymax, 'mean stress = '+str(meanStress) ) 
+    plt.subplot(2,1,2) 
+    plt.plot(ts, baseline, 'k')
+    plt.plot(ts, tau_wall, 'or')
     plt.xlabel('timestep'); plt.ylabel('wall shear stress')
+    plt.ylim((ymin, ymax))
     plt.tight_layout()
-    plt.savefig('hist_tau_wall' + runName + '.png')
+    plt.savefig('hist_tau_wall_bot_' + runName + '.png')
     #fig.show()
-else:
-    print ">>>> File "+filename1+" is not present!"
+
+if isfile(filename1b):
+    ts, t, tau_wall = get_wall_stress(filename1b)
+    n = np.size(t)
+    meanStress = np.mean(tau_wall[np.floor(n/2):n-1]) 
+    baseline = np.ones(n) * meanStress
+    fig = plt.figure(figsize=(10,7))
+    ymin = np.min(tau_wall) - 0.1*np.min(tau_wall)
+    ymax = np.max(tau_wall) + 0.1*np.max(tau_wall)
+    plt.subplot(2,1,1)
+    plt.plot(t, baseline, 'k')
+    plt.plot(t, tau_wall, 'ob')
+    plt.xlabel('nondimensional time'); plt.ylabel('wall shear stress')
+    plt.text(0.0, ymax-0.05*ymax, 'mean stress = '+str(meanStress) ) 
+    plt.xlim((0, t[-1]))
+    plt.ylim((ymin, ymax))
+    plt.subplot(2,1,2) 
+    plt.plot(ts, baseline, 'k')
+    plt.plot(ts, tau_wall, 'ob')
+    plt.xlabel('timestep'); plt.ylabel('wall shear stress')
+    plt.ylim((ymin, ymax))
+    plt.tight_layout()
+    plt.savefig('hist_tau_wall_top_' + runName + '.png')
 
 if isfile(filename2):
     lines = np.loadtxt(filename2, skiprows=1)
@@ -114,4 +159,16 @@ if isfile(filename3):
     plt.savefig('hist_ky_energy' + runName + '.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
 else:
     print ">>>> File "+filename3+" is not present!"
+
+if isfile(filename4):
+    lines = np.loadtxt(filename4, skiprows=1, usecols=(0,1))
+    t = lines[:,0]        # time
+    ke = lines[:,1]
+    fig = plt.figure(figsize=(10,7))
+    plt.plot(t, ke, 'og')
+    plt.ylabel('KE');  plt.xlabel('time');
+    plt.xlim((0, t[-1]))
+    plt.tight_layout()
+    plt.savefig('hist_check_ke_+' + runName + '.png')
+
 

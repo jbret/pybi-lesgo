@@ -169,6 +169,6 @@ if isfile(filename4):
     plt.ylabel('KE');  plt.xlabel('time');
     plt.xlim((0, t[-1]))
     plt.tight_layout()
-    plt.savefig('hist_check_ke_+' + runName + '.png')
+    plt.savefig('hist_check_ke_' + runName + '.png')
 
 

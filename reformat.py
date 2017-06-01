@@ -13,7 +13,7 @@ from unfoldings import unfold
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
-fourier    = 1;
+fourier    = 0;
 spectra_jb = 0;
 
 myDir = getcwd(); dirParts = myDir.split("/")
@@ -51,7 +51,7 @@ if avg:
     vel2   = assemble_field('./output/binary_vel2_avg.dat.c',nproc,6,nz2,nz,ny,nx)
     rs     = assemble_field('./output/binary_rs.dat.c',nproc,6,nz2,nz,ny,nx)
     tau    = assemble_field('./output/binary_tau_avg.dat.c',nproc,6,nz2,nz,ny,nx)
-    #dp     = assemble_field('./output/binary_dp.dat.c',nproc,3,nz2,nz,ny,nx)
+    dp     = assemble_field('./output/binary_dp.dat.c',nproc,3,nz2,nz,ny,nx)
     f      = assemble_field('./output/binary_force_avg.dat.c',nproc,3,nz2,nz,ny,nx)
     sp2d   = assemble_field('./output/binary_sp2d.dat.c',nproc,6,nz2,nz,ny,nx)
     sp1dky = assemble_field('./output/binary_sp1dky.dat.c',nproc,6,nz2,nz,ny,nx)
@@ -115,9 +115,9 @@ else:
 u    =  vel[0,:,:,:]
 v    =  vel[1,:,:,:]
 w    =  vel[2,:,:,:]
-#dpdx = dp[0,:,:,:]
-#dpdy = dp[1,:,:,:]
-#dpdz = dp[2,:,:,:]
+dpdx = dp[0,:,:,:]
+dpdy = dp[1,:,:,:]
+dpdz = dp[2,:,:,:]
 fx = f[0,:,:,:]
 fy = f[1,:,:,:]
 fz = f[2,:,:,:]
@@ -181,12 +181,12 @@ nu_tMean = np.mean(nu_tMean, axis=1) # x- and y-averaged
 txzMean = np.mean(txz, axis=2)      # x-averaging
 txzMean = np.mean(txzMean, axis=1)  # y-averaging
 
-#dpdxMean = np.mean(dpdx, axis=2)      # x-averaging
-#dpdxMean = np.mean(dpdxMean, axis=1)  # y-averaging
-#dpdyMean = np.mean(dpdy, axis=2)      # x-averaging
-#dpdyMean = np.mean(dpdyMean, axis=1)  # y-averaging
-#dpdzMean = np.mean(dpdz, axis=2)      # x-averaging
-#dpdzMean = np.mean(dpdzMean, axis=1)  # y-averaging
+dpdxMean = np.mean(dpdx, axis=2)      # x-averaging
+dpdxMean = np.mean(dpdxMean, axis=1)  # y-averaging
+dpdyMean = np.mean(dpdy, axis=2)      # x-averaging
+dpdyMean = np.mean(dpdyMean, axis=1)  # y-averaging
+dpdzMean = np.mean(dpdz, axis=2)      # x-averaging
+dpdzMean = np.mean(dpdzMean, axis=1)  # y-averaging
 
 fxMean = np.mean(fx, axis=2)      # x-averaging
 fxMean = np.mean(fxMean, axis=1)  # y-averaging
@@ -248,13 +248,13 @@ np.save(datdir+'fz', fz)
 np.save(datdir+'fxMean', fxMean)
 np.save(datdir+'fyMean', fyMean)
 np.save(datdir+'fzMean', fzMean)
-#np.save(datdir+'dpdxMean', dpdxMean)
-#np.save(datdir+'dpdyMean', dpdyMean)
-#np.save(datdir+'dpdzMean', dpdzMean)
+np.save(datdir+'dpdxMean', dpdxMean)
+np.save(datdir+'dpdyMean', dpdyMean)
+np.save(datdir+'dpdzMean', dpdzMean)
 
-#np.save(datdir+'dpdx', dpdx)
-#np.save(datdir+'dpdy', dpdy)
-#np.save(datdir+'dpdz', dpdz)
+np.save(datdir+'dpdx', dpdx)
+np.save(datdir+'dpdy', dpdy)
+np.save(datdir+'dpdz', dpdz)
 
 np.save(datdir+'u', u)
 np.save(datdir+'v', v)

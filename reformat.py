@@ -13,7 +13,7 @@ from unfoldings import unfold
 RNL_branch = 1;    devel_branch = 0;
 avg        = 1;
 snapshots  = 0;    thisSnap = 250300;
-fourier    = 0;
+fourier    = 1;
 spectra_jb = 0;
 
 myDir = getcwd(); dirParts = myDir.split("/")
@@ -69,6 +69,7 @@ if fourier:
     vel  = unfold(vel,  1)   # kx --> x
     vel2 = unfold(vel2, 1)
     rs   = unfold(rs,   1)
+    f    = unfold(f,    2)  # kx, ky --> x
     tau  = unfold(tau,  2)  # kx, ky --> x
     snap = unfold(snap, 2)  # not tested yet
 

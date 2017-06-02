@@ -1117,13 +1117,13 @@ if energy_bal:
     dx = Lx / nx
     def ddz_w(f):
         # f is on w-nodes, dfdz on uvp-nodes
-        dfdz = np.zeros((nx,ny,nz))
+        dfdz = np.zeros((nz,ny,nx))
         for jz in range(0,nz-1):
             dfdz[jz,:,:] = (f[jz+1,:,:] - f[jz,:,:]) / dz
         return dfdz
 
     def ddx(f):
-        dfdx = np.zeros((nx,ny,nz))
+        dfdx = np.zeros((nz,ny,nx))
         kx = np.arange(0, nx/2+1)*(1j)
         for j in range(0, ny):
             for k in range(0, nz):
@@ -1133,7 +1133,7 @@ if energy_bal:
         return dfdx
 
     def ddy(f):
-        dfdy = np.zeros((nx,ny,nz))
+        dfdy = np.zeros((nz,ny,nx))
         ky = np.arange(0, ny/2+1)*(1j)
         for i in range(0, nx):
             for k in range(0, nz):
@@ -1144,14 +1144,14 @@ if energy_bal:
  
     def interp2uv(f):
         # f is on w-nodes, fuv on uvp-nodes
-        fuv = np.zeros((nx,ny,nz))
+        fuv = np.zeros((nz,ny,nx))
         for jz in range(0,nz-1):
             fuv[jz,:,:] = (f[jz+1,:,:] + f[jz,:,:]) / 2.0
         return fuv
 
     def interp2w(f):
         # f is on uv-nodes, fw on w-nodes
-        fw = np.zeros((nx,ny,nz))
+        fw = np.zeros((nz,ny,nx))
         for jz in range(0,nz-1):
             fw[jz+1,:,:] = (f[jz,:,:] + f[jz+1,:,:]) / 2.0
         return fw

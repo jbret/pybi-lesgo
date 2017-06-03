@@ -45,15 +45,21 @@ if all_turbine_power:
         pi_all[:,i-1] = np.loadtxt(filename, usecols=(4,) )
 
     farm_avg = np.mean( pi_all[:,:], axis=1)
-    t1 = int(np.floor(1./8*numT))
+    farm_sum = np.sum( pi_all[:,:], axis=1)
+    t1 = int(np.floor(1./5*numT))
     t2 = numT - t1
 
     farm_t_avg = np.mean(farm_avg[ t1: ] )
+    tfo = np.mean( farm_sum[ t1: ] )
 
     fig = plt.figure(figsize=(10,5))
     plt.plot(t, farm_avg)
     plt.plot(t[t1:], np.ones(t2)*farm_t_avg,'-r')
-    plt.title('farm time avg power = '+str(farm_t_avg))
+    plt.title('time avg power per turbine')
+    plt.text(1000, 7.5, 'total farm output: ' + str(tfo) )
+    plt.text(1000, 7.0, 'per turbine: ' + str(farm_t_avg) )
+    plt.text(1000, 1.0, 'num_x, num_y = ' + str(num_x) + ', ' + str(num_y) )
+    plt.text(1000, 1.5, str(num_turbs) + ' turbines' )
     plt.ylim([0, 8])
     plt.savefig('farm_avg_'+runName+'.png')
 

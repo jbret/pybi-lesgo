@@ -10,12 +10,23 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 from os import getcwd
 from os.path import isfile
+from subprocess import check_output
 
 myDir = getcwd(); dirParts = myDir.split("/")
 runName = dirParts[len(dirParts)-1]; print "This run's name: ", runName
 
+dummy = check_output(["grep", 'num_x', './lesgo.conf'])
+dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
+num_x = dummyStr[0]
+
+dummy = check_output(["grep", 'num_y', './lesgo.conf'])
+dummyStr = [int(s) for s in dummy.split() if s.isdigit()]
+num_y = dummyStr[0]
+
+num_turbs = num_x * num_y
+
 single_turbine_plot = 0;  turbNum = 1
-all_turbine_power   = 1;  total_turb_num = 24;
+all_turbine_power   = 1;
 # turbine numbering progresses along rows first, then columns
 
 # col 0: current time
@@ -28,8 +39,8 @@ if all_turbine_power:
     plt.close("all")
     t   = np.loadtxt('./turbine/turbine_1_forcing.dat', usecols=(0,) )
     numT = np.size(t)
-    pi_all = np.zeros((numT, total_turb_num))
-    for i in range(1, total_turb_num + 1 ):
+    pi_all = np.zeros((numT, num_turbs))
+    for i in range(1, num_turbs + 1 ):
         filename = './turbine/turbine_'+str(i)+'_forcing.dat'
         pi_all[:,i-1] = np.loadtxt(filename, usecols=(4,) )
 
@@ -47,7 +58,7 @@ if all_turbine_power:
     plt.savefig(runName+'_farm_avg.png')
 
     #fig = plt.figure(figsize=(10,5))
-    #for i in range(1, total_turb_num + 1 ):
+    #for i in range(1, num_turbs + 1 ):
     #    plt.plot(t, pi_all[:,i-1])
     #plt.savefig('pi_all.png')
 

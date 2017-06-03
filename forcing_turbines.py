@@ -55,7 +55,7 @@ if all_turbine_power:
     plt.plot(t[t1:], np.ones(t2)*farm_t_avg,'-r')
     plt.title('farm time avg power = '+str(farm_t_avg))
     plt.ylim([0, 8])
-    plt.savefig(runName+'_farm_avg.png')
+    plt.savefig('farm_avg_'+runName+'.png')
 
     #fig = plt.figure(figsize=(10,5))
     #for i in range(1, num_turbs + 1 ):

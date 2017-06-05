@@ -31,9 +31,9 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 RNL_branch = 1;    devel_branch = 0;
 
-vel_avg_plot    = 1;
-uXMean_plot     = 0;
-tau_plot        = 1;
+vel_avg_plot    = 0;
+uXMean_plot     = 1;
+tau_plot        = 0;
 nu_t_plot       = 0;
 spanSpec_plot   = 0;
 sp1dky_plot     = 0;  plot_wavelen = 0;  # by wavelength or wavenumber
@@ -45,7 +45,7 @@ rs_plot         = 0;
 vel2_rs_plot    = 0;
 snap_plot_xy    = 0;   thisSnap = 250300;  # on uv-grid
 snap_plot_yz    = 0;
-energy_bal      = 1;
+energy_bal      = 0;
 test_plot       = 0;
 #snap_plot       = 1;  thisSnap = 250300;  # on uv-grid
 
@@ -78,9 +78,9 @@ print "nz  =", nz
 print "nz2 =", nz2
 print "nz_ =", nz_
 
-Lx = 2*np.pi;
-Ly = 2*np.pi;
-Lz = 1.0;
+Lx = np.pi;  dx = Lx / nx
+Ly = np.pi;  dy = Ly / ny
+Lz = 1.0;    dz = Lz / nz
 
 z = np.linspace(0, Lz, nz, endpoint=False)  # w-grid (no point at z = 1.0)
 y = np.linspace(0, Ly, ny, endpoint=False)
@@ -98,7 +98,7 @@ def mySaveFig(figName, hiRes):
     print '>>> Saving ' + figName
     plt.savefig(figdir1 + figName + runName + '.png')
     plt.savefig(figdir2 + figName + runName + '.pdf')
-    plt.savefig(figdir2 + figName + runName + '.eps')
+    #plt.savefig(figdir2 + figName + runName + '.eps')
     plt.savefig(figdir2 + figName + runName + '.jpg')
     if hiRes:
         myDPI = 600; dpiName = 'dpi'+str(myDPI)+'-';
@@ -147,10 +147,16 @@ if uXMean_plot:
     fig = plt.figure(figsize=(scale*Ly,scale*Lz))
     Y, Z = np.meshgrid(y, z)
     uXMean = np.load(datdir+'uXMean.npy')
-    cs = plt.contourf(Y, Z, uXMean[:,:], vmin=0, vmax=17)
+    myMin = np.min(uXMean)
+    myMax = np.max(uXMean)
+    myMap = 'inferno'
+    #cs = plt.contourf(Y, Z, uXMean[:,:], vmin=0, vmax=17)
+    cs = plt.pcolormesh(Y, Z, uXMean, cmap=myMap, shading='gouraud',
+         vmin=myMin, vmax=myMax);
     cbar = plt.colorbar()
-    plt.xlabel('$'+span+' / H $'); 
+    plt.xlabel('$'+span+' / H $');
     plt.ylabel('$'+vert+' / H $');
+    plt.xlim([0, Ly-dy])
     #plt.suptitle('Streamwise velocity contours', fontsize = 16)
     # now make a circle with no fill, which is good for hilighting key results
     circle1=plt.Circle((0.261799, 0.1),.05,color='k',fill=False)
@@ -168,6 +174,20 @@ if uXMean_plot:
     #ax.add_artist(circle6)
     plt.tight_layout()
     mySaveFig('uXmean_', 0)
+    
+    # zoom in on sub set of turbines
+    fig = plt.figure(figsize=(scale*Ly,scale*Lz))
+    za = 25
+    ya = ny/2
+    cs = plt.pcolormesh(Y[:za,:ya], Z[:za,:ya], uXMean[:za,:ya], cmap=myMap, shading='gouraud')
+    #     vmin=myMin, vmax=myMax);
+    cbar = plt.colorbar()
+    plt.xlabel('$'+span+' / H $');
+    plt.ylabel('$'+vert+' / H $');
+    plt.xlim([0, Ly/2-dy])
+    plt.ylim([0, (1.0*za)/nz*Lz - dz])
+    plt.tight_layout()
+    mySaveFig('uXmean_zoom_', 0)
 
 if tau_plot:
     rs13Mean = np.load(datdir+'rs13Mean.npy')
